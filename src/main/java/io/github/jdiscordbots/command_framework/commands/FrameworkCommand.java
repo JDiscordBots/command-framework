@@ -12,7 +12,7 @@ public class FrameworkCommand implements ICommand
 	@Override
 	public void action(CommandEvent event)
 	{
-		event.getChannel().sendMessage("Framework: Command framework by Noobi#0001").queue();
+		event.getChannel().sendMessage("Framework: Command framework by JDiscordBots").queue();
 	}
 
 	@Override
