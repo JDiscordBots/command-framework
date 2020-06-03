@@ -25,7 +25,7 @@ public class Main
 
 	public static void main(String[] args) throws LoginException {
 		final JDABuilder builder = JDABuilder.createDefault(token);
-		final CommandFramework framework = new CommandFramework("io.github.jdiscordbots.command_framework")
+		final CommandFramework framework = new CommandFramework()
 				.setMentionPrefix(true)
 				.setPrefix("nd--")
 				.setOwners("358291050957111296", "321227144791326730");

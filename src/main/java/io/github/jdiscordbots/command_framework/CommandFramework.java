@@ -25,6 +25,19 @@ public class CommandFramework
 	private boolean mentionPrefix = true;
 	private String[] owners = {};
 
+	public CommandFramework() {
+		this(getCallerPackageName());
+	}
+	private static String getCallerPackageName() {
+		try {
+			StackTraceElement trace=new Throwable().getStackTrace()[2];
+			String clName = trace.getClassName();
+			return Thread.currentThread().getContextClassLoader().loadClass(clName).getPackage().getName();
+		} catch (ClassNotFoundException e) {
+			throw new IllegalStateException("caller class not available");
+		}
+	}
+	
 	public CommandFramework(String commandsPackagePath)
 	{
 		instance = this;
