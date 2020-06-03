@@ -1,10 +1,11 @@
 package io.github.jdiscordbots.command_framework;
 
-import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
@@ -17,6 +18,8 @@ import java.util.function.BiConsumer;
 
 public class CommandFramework
 {
+	private static final Logger LOG=LoggerFactory.getLogger(CommandFramework.class);
+	
 	private static CommandFramework instance;
 	private String prefix = "!";
 	private boolean mentionPrefix = true;
@@ -54,7 +57,9 @@ public class CommandFramework
 			}
 			catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e)
 			{
-				e.printStackTrace();
+				if(LOG.isErrorEnabled()) {
+					LOG.error("An exception occured trying to create and register an instance of the class {}.",cl.getCanonicalName(),e);
+				}
 			}
 		}
 	}

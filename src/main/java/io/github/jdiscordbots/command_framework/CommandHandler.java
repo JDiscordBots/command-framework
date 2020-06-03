@@ -7,10 +7,13 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 final class CommandHandler
 {
 	private static final Map<String, ICommand> commands = new HashMap<>();
-	/* TODO Logger */
+	private static final Logger LOG=LoggerFactory.getLogger(CommandHandler.class);
 
 	private CommandHandler()
 	{
@@ -42,7 +45,7 @@ final class CommandHandler
 				}
 				catch (RuntimeException e)
 				{
-					// TODO: 02.06.2020 Output stacktrace using logger
+					LOG.error("The command {} was executed but an error occured.",commandContainer.invoke,e);
 					commandContainer.event.getChannel().sendMessage("Error:\n```" + e.getMessage() + "\n```").queue();
 				}
 			}
