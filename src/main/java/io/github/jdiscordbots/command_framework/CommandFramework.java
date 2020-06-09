@@ -71,7 +71,7 @@ public class CommandFramework
 			catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e)
 			{
 				if(LOG.isErrorEnabled()) {
-					LOG.error("An exception occured trying to create and register an instance of the class {}.",cl.getCanonicalName(),e);
+					LOG.error("An exception occurred trying to create and register an instance of the class {}.",cl.getCanonicalName(),e);
 				}
 			}
 		}
@@ -145,8 +145,9 @@ public class CommandFramework
 			if (message.getAuthor().isBot())
 				return;
 
-			// FIXME: 02.06.2020 not working
-			if (this.mentionPrefix && contentRaw.startsWith(message.getGuild().getSelfMember().getAsMention() + " "))
+			if (this.mentionPrefix &&
+				(contentRaw.startsWith(message.getGuild().getSelfMember().getAsMention() + " ")
+					|| contentRaw.startsWith(message.getGuild().getSelfMember().getUser().getAsMention() + " ")))
 			{
 				CommandHandler.handle(CommandHandler.CommandParser.parse(event, contentRaw.split("\\s+")[0] + " "));
 				return;
