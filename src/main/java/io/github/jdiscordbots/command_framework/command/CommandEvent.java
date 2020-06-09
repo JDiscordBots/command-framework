@@ -1,5 +1,6 @@
-package io.github.jdiscordbots.command_framework;
+package io.github.jdiscordbots.command_framework.command;
 
+import io.github.jdiscordbots.command_framework.CommandFramework;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;

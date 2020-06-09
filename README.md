@@ -29,7 +29,7 @@ public class Main {
 
 Example command:
 ```java
-import io.github.jdiscordbots.command_framework.*;
+import io.github.jdiscordbots.command_framework.command.Command;import io.github.jdiscordbots.command_framework.command.CommandEvent;import io.github.jdiscordbots.command_framework.command.ICommand;
 
 @Command({"example", "examplealias"}) // Step 4
 public class Example implements ICommand {
@@ -37,13 +37,18 @@ public class Example implements ICommand {
     public void action(CommandEvent event) {
         event.getChannel().sendMessage("Example command reply").queue();
     }
+
+    @Override
+    public String help() {
+        return "Example command";
+    }
 }
 ```
 
 Example permission restricted command:
 ```java
-import io.github.jdiscordbots.command_framework.*;
-import net.dv8tion.jda.api.Permission;
+
+import io.github.jdiscordbots.command_framework.command.Command;import io.github.jdiscordbots.command_framework.command.CommandEvent;import io.github.jdiscordbots.command_framework.command.ICommand;import net.dv8tion.jda.api.Permission;
 
 @Command({"permissionexample", "permissionexamplealias"}) // Step 4
 public class PermissionExample implements ICommand {
@@ -55,6 +60,11 @@ public class PermissionExample implements ICommand {
     @Override
     public boolean allowExecute(CommandEvent event) {
         return event.getMember().hasPermission(Permission.MANAGE_PERMISSIONS); // Allow use of command only to members with manage permissions permission
+    }
+
+    @Override
+    public String help() {
+        return "Permission example command";
     }
 }
 ```

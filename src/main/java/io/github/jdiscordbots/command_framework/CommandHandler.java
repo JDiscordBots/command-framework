@@ -1,14 +1,15 @@
 package io.github.jdiscordbots.command_framework;
 
+import io.github.jdiscordbots.command_framework.command.CommandEvent;
+import io.github.jdiscordbots.command_framework.command.ICommand;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class CommandHandler
 {

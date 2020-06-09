@@ -1,4 +1,4 @@
-package io.github.jdiscordbots.command_framework;
+package io.github.jdiscordbots.command_framework.command;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

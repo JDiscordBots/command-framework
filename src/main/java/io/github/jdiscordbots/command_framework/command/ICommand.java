@@ -1,4 +1,4 @@
-package io.github.jdiscordbots.command_framework;
+package io.github.jdiscordbots.command_framework.command;
 
 public interface ICommand
 {
@@ -8,4 +8,6 @@ public interface ICommand
 	{
 		return true;
 	}
+
+	String help();
 }

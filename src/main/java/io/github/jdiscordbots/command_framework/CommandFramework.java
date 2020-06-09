@@ -1,5 +1,8 @@
 package io.github.jdiscordbots.command_framework;
 
+import io.github.jdiscordbots.command_framework.command.Command;
+import io.github.jdiscordbots.command_framework.command.ICommand;
+import io.github.jdiscordbots.command_framework.commands.Help;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -21,6 +24,7 @@ public class CommandFramework
 	private static final Logger LOG=LoggerFactory.getLogger(CommandFramework.class);
 	
 	private static CommandFramework instance;
+	private boolean defaultHelp = true;
 	private String prefix = "!";
 	private boolean mentionPrefix = true;
 	private String[] owners = {};
@@ -53,8 +57,13 @@ public class CommandFramework
 		{
 			Command cmdAsBotCommand = (Command) cmdAsAnnotation;
 			ICommand cmd = (ICommand) annotatedAsObject;
+
 			for (String alias : cmdAsBotCommand.value()) {
 				CommandHandler.addCommand(alias.toLowerCase(), cmd);
+			}
+
+			if (getInstance().getDefaultHelp()) {
+				CommandHandler.addCommand("help", new Help());
 			}
 		});
 	}
@@ -118,6 +127,14 @@ public class CommandFramework
 
 	public boolean isMentionPrefix() {
 		return mentionPrefix;
+	}
+
+	public void setDefaultHelp(boolean defaultHelp) {
+		this.defaultHelp = defaultHelp;
+	}
+
+	public boolean getDefaultHelp() {
+		return defaultHelp;
 	}
 
 	public Map<String, ICommand> getCommands()
