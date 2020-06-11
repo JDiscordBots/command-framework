@@ -2,7 +2,6 @@ package io.github.jdiscordbots.command_framework;
 
 import io.github.jdiscordbots.command_framework.command.Command;
 import io.github.jdiscordbots.command_framework.command.ICommand;
-import io.github.jdiscordbots.command_framework.commands.Help;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -24,20 +23,27 @@ public class CommandFramework
 	private static final Logger LOG=LoggerFactory.getLogger(CommandFramework.class);
 	
 	private static CommandFramework instance;
-	private boolean defaultHelp = true;
-	private String prefix = "!";
-	private boolean mentionPrefix = true;
-	private String[] owners = {};
 
-	public CommandFramework() {
+	private String prefix = "!";
+	private String[] owners = {};
+	private boolean mentionPrefix = true;
+	private boolean unknownCommand = true;
+
+	public CommandFramework()
+	{
 		this(getCallerPackageName());
 	}
-	private static String getCallerPackageName() {
-		try {
-			StackTraceElement trace=new Throwable().getStackTrace()[2];
+
+	private static String getCallerPackageName()
+	{
+		try
+		{
+			StackTraceElement trace = new Throwable().getStackTrace()[2];
 			String clName = trace.getClassName();
 			return Thread.currentThread().getContextClassLoader().loadClass(clName).getPackage().getName();
-		} catch (ClassNotFoundException e) {
+		}
+		catch (ClassNotFoundException e)
+		{
 			throw new IllegalStateException("caller class not available");
 		}
 	}
@@ -55,16 +61,11 @@ public class CommandFramework
 	{
 		addAction(reflections, (cmdAsAnnotation, annotatedAsObject) ->
 		{
-			Command cmdAsBotCommand = (Command) cmdAsAnnotation;
-			ICommand cmd = (ICommand) annotatedAsObject;
+			final Command cmdAsBotCommand = (Command) cmdAsAnnotation;
+			final ICommand cmd = (ICommand) annotatedAsObject;
 
-			for (String alias : cmdAsBotCommand.value()) {
+			for (String alias : cmdAsBotCommand.value())
 				CommandHandler.addCommand(alias.toLowerCase(), cmd);
-			}
-
-			if (getInstance().getDefaultHelp()) {
-				CommandHandler.addCommand("help", new Help());
-			}
 		});
 	}
 	private static void addAction(Reflections reflections, BiConsumer<Annotation, Object> function)
@@ -73,15 +74,15 @@ public class CommandFramework
 		{
 			try
 			{
-				Object annotatedAsObject = cl.getDeclaredConstructor().newInstance();
-				Annotation cmdAsAnnotation = cl.getAnnotation((Class<? extends Annotation>) Command.class);
+				final Object annotatedAsObject = cl.getDeclaredConstructor().newInstance();
+				final Annotation cmdAsAnnotation = cl.getAnnotation((Class<? extends Annotation>) Command.class);
+
 				function.accept(cmdAsAnnotation, annotatedAsObject);
 			}
 			catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e)
 			{
-				if(LOG.isErrorEnabled()) {
-					LOG.error("An exception occurred trying to create and register an instance of the class {}.",cl.getCanonicalName(),e);
-				}
+				if(LOG.isErrorEnabled())
+					LOG.error("An exception occurred trying to create and register an instance of the class {}.", cl.getCanonicalName(), e);
 			}
 		}
 	}
@@ -108,9 +109,18 @@ public class CommandFramework
 		return this;
 	}
 
+	public CommandFramework setUnknownCommand(boolean unknownCommand) {
+		this.unknownCommand = unknownCommand;
+		return this;
+	}
+
+	public boolean isUnknownCommand() {
+		return unknownCommand;
+	}
+
 	public ListenerAdapter build()
 	{
-		return new CommandListener(this.getPrefix(), this.isMentionPrefix());
+		return new CommandListener(this);
 	}
 
 	public static CommandFramework getInstance() {
@@ -129,12 +139,9 @@ public class CommandFramework
 		return mentionPrefix;
 	}
 
-	public void setDefaultHelp(boolean defaultHelp) {
-		this.defaultHelp = defaultHelp;
-	}
-
-	public boolean getDefaultHelp() {
-		return defaultHelp;
+	public CommandFramework setOwners(String[] owners)
+	{
+		return this.setOwners(owners[0], Arrays.copyOfRange(owners, 1, owners.length));
 	}
 
 	public Map<String, ICommand> getCommands()
@@ -142,29 +149,36 @@ public class CommandFramework
 		return CommandHandler.getCommands();
 	}
 
-	// TODO: 02.06.2020 Implement permissions system
 	private static final class CommandListener extends ListenerAdapter
 	{
 		private final String prefix;
 		private final boolean mentionPrefix;
 
-		public CommandListener(String prefix, boolean mentionPrefix)
+		public CommandListener(CommandFramework framework)
+		{
+			this(framework.getPrefix(), framework.isMentionPrefix());
+		}
+
+		// Can be removed
+		private CommandListener(String prefix, boolean mentionPrefix)
 		{
 			this.prefix = prefix;
 			this.mentionPrefix = mentionPrefix;
 		}
 
 		@Override
-		public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+		public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event)
+		{
 			final Message message = event.getMessage();
 			final String contentRaw = message.getContentRaw().trim();
+			final String selfUserId = message.getJDA().getSelfUser().getId();
+			final boolean containsMention = contentRaw.startsWith("<!@" + selfUserId + "> ")
+				|| contentRaw.startsWith("<@" + selfUserId + "> ");
 
 			if (message.getAuthor().isBot())
 				return;
 
-			if (this.mentionPrefix &&
-				(contentRaw.startsWith(message.getGuild().getSelfMember().getAsMention() + " ")
-					|| contentRaw.startsWith(message.getGuild().getSelfMember().getUser().getAsMention() + " ")))
+			if (this.mentionPrefix && containsMention)
 			{
 				CommandHandler.handle(CommandHandler.CommandParser.parse(event, contentRaw.split("\\s+")[0] + " "));
 				return;

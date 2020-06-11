@@ -2,13 +2,18 @@ package io.github.jdiscordbots.command_framework;
 
 import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
+import io.github.jdiscordbots.command_framework.utils.PermissionUtils;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 final class CommandHandler
@@ -21,7 +26,7 @@ final class CommandHandler
 		/* Prevent instantiation */
 	}
 
-	public static Map<String, ICommand> getCommands()
+	static Map<String, ICommand> getCommands()
 	{
 		return Collections.unmodifiableMap(commands);
 	}
@@ -33,12 +38,15 @@ final class CommandHandler
 
 	public static void handle(final CommandContainer commandContainer)
 	{
+		final TextChannel channel = commandContainer.event.getChannel();
+		
 		if (commands.containsKey(commandContainer.invoke.toLowerCase()))
 		{
 			final ICommand command = commands.get(commandContainer.invoke.toLowerCase());
-			boolean save = command.allowExecute(commandContainer.event);
+			final boolean canExecute = command.allowExecute(commandContainer.event);
 
-			if (save)
+			/* Check permission and allow all commands to Owners */
+			if (canExecute || PermissionUtils.checkOwner(commandContainer.event))
 			{
 				try
 				{
@@ -46,18 +54,27 @@ final class CommandHandler
 				}
 				catch (RuntimeException e)
 				{
-					LOG.error("The command {} was executed but an error occured.",commandContainer.invoke,e);
-					commandContainer.event.getChannel().sendMessage("Error:\n```" + e.getMessage() + "\n```").queue();
+					LOG.error("The command {} was executed but an error occurred.", commandContainer.invoke, e);
+					channel.sendMessage("Error:\n```" + e.getMessage() + "\n```").queue();
 				}
 			}
 			else
 			{
-				commandContainer.event.getChannel().sendMessage("You're not allowed to use this command!").queue();
+				channel.sendMessage("You're not allowed to use this command!").queue();
 			}
 		}
 		else
 		{
-			/* Unknown command */
+			// TODO: 09.06.2020 Custom unknown command message 
+			if (commandContainer.event.getFramework().isUnknownCommand())
+			{
+				final EmbedBuilder eb = new EmbedBuilder()
+					.setColor(Color.red)
+					.setTitle("Unknown command")
+					.setDescription("See `" + commandContainer.event.getFramework().getPrefix() + "help` for more information!");
+				
+				channel.sendMessage(eb.build()).queue();
+			}
 		}
 	}
 
@@ -68,10 +85,12 @@ final class CommandHandler
 			/* Prevent instantiation */
 		}
 
+		/*
 		static CommandContainer parse(final GuildMessageReceivedEvent event)
 		{
 			return parse(event, CommandFramework.getInstance().getPrefix());
 		}
+		 */
 
 		static CommandContainer parse(final GuildMessageReceivedEvent event, final String prefix)
 		{
