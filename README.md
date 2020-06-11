@@ -29,7 +29,7 @@ public class Main {
 
 Example command:
 ```java
-import io.github.jdiscordbots.command_framework.command.Command;import io.github.jdiscordbots.command_framework.command.CommandEvent;import io.github.jdiscordbots.command_framework.command.ICommand;
+import io.github.jdiscordbots.command_framework.command.*;
 
 @Command({"example", "examplealias"}) // Step 4
 public class Example implements ICommand {
@@ -48,7 +48,9 @@ public class Example implements ICommand {
 Example permission restricted command:
 ```java
 
-import io.github.jdiscordbots.command_framework.command.Command;import io.github.jdiscordbots.command_framework.command.CommandEvent;import io.github.jdiscordbots.command_framework.command.ICommand;import net.dv8tion.jda.api.Permission;
+import io.github.jdiscordbots.command_framework.command.*;
+
+import net.dv8tion.jda.api.Permission;
 
 @Command({"permissionexample", "permissionexamplealias"}) // Step 4
 public class PermissionExample implements ICommand {
