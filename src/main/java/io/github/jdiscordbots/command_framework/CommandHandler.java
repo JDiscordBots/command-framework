@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 final class CommandHandler
@@ -66,7 +66,7 @@ final class CommandHandler
 		else
 		{
 			// TODO: 09.06.2020 Custom unknown command message 
-			if (commandContainer.event.getFramework().isUnknownCommand())
+			if (commandContainer.event.getFramework().isUnknownCommand() && commandContainer.event.getFramework().getUnknownCommandConsumer() == null)
 			{
 				final EmbedBuilder eb = new EmbedBuilder()
 					.setColor(Color.red)
@@ -74,6 +74,10 @@ final class CommandHandler
 					.setDescription("See `" + commandContainer.event.getFramework().getPrefix() + "help` for more information!");
 				
 				channel.sendMessage(eb.build()).queue();
+			}
+			else if (commandContainer.event.getFramework().isUnknownCommand() && commandContainer.event.getFramework().getUnknownCommandConsumer() != null)
+			{
+				commandContainer.event.getFramework().getUnknownCommandConsumer().accept(channel);
 			}
 		}
 	}
@@ -84,13 +88,6 @@ final class CommandHandler
 		{
 			/* Prevent instantiation */
 		}
-
-		/*
-		static CommandContainer parse(final GuildMessageReceivedEvent event)
-		{
-			return parse(event, CommandFramework.getInstance().getPrefix());
-		}
-		 */
 
 		static CommandContainer parse(final GuildMessageReceivedEvent event, final String prefix)
 		{

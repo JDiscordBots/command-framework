@@ -3,6 +3,7 @@ package io.github.jdiscordbots.command_framework;
 import io.github.jdiscordbots.command_framework.command.Command;
 import io.github.jdiscordbots.command_framework.command.ICommand;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.reflections.Reflections;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class CommandFramework
 {
@@ -24,6 +26,7 @@ public class CommandFramework
 	
 	private static CommandFramework instance;
 
+	private Consumer<TextChannel> unknownCommandConsumer = null;
 	private String prefix = "!";
 	private String[] owners = {};
 	private boolean mentionPrefix = true;
@@ -120,6 +123,7 @@ public class CommandFramework
 
 	public ListenerAdapter build()
 	{
+		LOG.debug("Listening to following commands ({}):\n{}", CommandHandler.getCommands().size(), String.join(", ", CommandHandler.getCommands().keySet()));
 		return new CommandListener(this);
 	}
 
@@ -133,6 +137,15 @@ public class CommandFramework
 
 	public String[] getOwners() {
 		return owners;
+	}
+
+	Consumer<TextChannel> getUnknownCommandConsumer() {
+		return unknownCommandConsumer;
+	}
+
+	public CommandFramework setUnknownMessage(Consumer<TextChannel> unknownCommandConsumer) {
+		this.unknownCommandConsumer = unknownCommandConsumer;
+		return this.setUnknownCommand(true);
 	}
 
 	public boolean isMentionPrefix() {

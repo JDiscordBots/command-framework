@@ -26,7 +26,7 @@ public class Main
 	public static void main(String[] args) throws LoginException {
 		final JDABuilder builder = JDABuilder.createDefault(token);
 		final CommandFramework framework = new CommandFramework()
-			.setUnknownCommand(false)
+			.setUnknownMessage(channel -> channel.sendMessage("Custom unknown message reply").queue())
 			.setMentionPrefix(true)
 			.setPrefix("nd--")
 			.setOwners(new String[] {"358291050957111296", "321227144791326730"});

@@ -9,19 +9,17 @@ import java.util.List;
 
 public class CommandEvent
 {
-	private final CommandFramework framework;
 	private final GuildMessageReceivedEvent event;
 	private final List<String> args;
 
 	public CommandEvent(GuildMessageReceivedEvent event, List<String> args)
 	{
-		this.framework = CommandFramework.getInstance();
 		this.event = event;
 		this.args = args;
 	}
 
 	public CommandFramework getFramework() {
-		return framework;
+		return CommandFramework.getInstance();
 	}
 
 	public GuildMessageReceivedEvent getEvent()
