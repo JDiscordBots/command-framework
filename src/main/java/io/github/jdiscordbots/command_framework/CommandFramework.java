@@ -123,7 +123,9 @@ public class CommandFramework
 
 	public ListenerAdapter build()
 	{
-		LOG.debug("Listening to following commands ({}):\n{}", CommandHandler.getCommands().size(), String.join(", ", CommandHandler.getCommands().keySet()));
+		if(LOG.isDebugEnabled())
+			LOG.debug("Listening to following commands ({}):\n{}", CommandHandler.getCommands().size(), String.join(", ", CommandHandler.getCommands().keySet()));
+		
 		return new CommandListener(this);
 	}
 
@@ -193,7 +195,7 @@ public class CommandFramework
 
 			if (this.mentionPrefix && containsMention)
 			{
-				CommandHandler.handle(CommandHandler.CommandParser.parse(event, contentRaw.split("\\s+")[0] + " "));
+				CommandHandler.handle(CommandHandler.CommandParser.parse(event, CommandHandler.CommandParser.SPACE_PATTERN.split(contentRaw)[0] + " "));
 				return;
 			}
 

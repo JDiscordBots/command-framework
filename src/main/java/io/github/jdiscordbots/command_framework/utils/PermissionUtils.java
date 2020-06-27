@@ -13,6 +13,6 @@ public class PermissionUtils
 
 	public static boolean checkOwner(CommandEvent event)
 	{
-		return Arrays.stream(event.getFramework().getOwners()).anyMatch(id -> id.equals(event.getAuthor().getId()));
+		return Arrays.stream(event.getFramework().getOwners()).anyMatch(id -> event.getAuthor().getId().equals(id));
 	}
 }
