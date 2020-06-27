@@ -5,8 +5,7 @@ import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
 
 @Command("test")
-public class TestCommand implements ICommand
-{
+public class TestCommand implements ICommand {
 	@Override
 	public void action(CommandEvent event) {
 		event.getChannel().sendMessage("test").queue();

@@ -5,9 +5,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation to identify commands
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
-public @interface Command
-{
+public @interface Command {
+	/**
+	 * Get command name and optional aliases
+	 *
+	 * @return command name and optional aliases
+	 */
 	String[] value();
 }

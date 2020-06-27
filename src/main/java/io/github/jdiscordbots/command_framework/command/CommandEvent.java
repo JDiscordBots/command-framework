@@ -7,68 +7,120 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.util.List;
 
-public class CommandEvent
-{
+/**
+ * CommandEvent
+ */
+public class CommandEvent {
 	private final GuildMessageReceivedEvent event;
 	private final List<String> args;
 
-	public CommandEvent(GuildMessageReceivedEvent event, List<String> args)
-	{
+	/**
+	 * Construct a new CommandEvent
+	 *
+	 * @param event incomming {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
+	 * @param args Command arguments
+	 */
+	public CommandEvent(GuildMessageReceivedEvent event, List<String> args) {
 		this.event = event;
 		this.args = args;
 	}
 
+	/**
+	 * Get CommandFramework instance
+	 *
+	 * @return {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance
+	 */
 	public CommandFramework getFramework() {
 		return CommandFramework.getInstance();
 	}
 
-	public GuildMessageReceivedEvent getEvent()
-	{
+	/**
+	 * Get corresponding message event
+	 *
+	 * @return incomming {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
+	 */
+	public GuildMessageReceivedEvent getEvent() {
 		return this.event;
 	}
 
-	public List<String> getArgs()
-	{
+	/**
+	 * Get command arguments as {@link java.util.List<String> List}
+	 *
+	 * @return command arguments
+	 */
+	public List<String> getArgs() {
 		return this.args;
 	}
 
-	public Guild getGuild()
-	{
+	/**
+	 * Get corresponding guild of event
+	 *
+	 * @return {@link net.dv8tion.jda.api.entities.Guild Guild} of event
+	 */
+	public Guild getGuild() {
 		return this.event.getGuild();
 	}
 
-	public JDA getJDA()
-	{
+	/**
+	 * Get corresponding API of event
+	 *
+	 * @return {@link net.dv8tion.jda.api.JDA JDA} instance of event
+	 */
+	public JDA getJDA() {
 		return this.event.getJDA();
 	}
 
-	public User getAuthor()
-	{
+	/**
+	 * Get corresponding user of event
+	 *
+	 * @return {@link net.dv8tion.jda.api.entities.User User} of event
+	 */
+	public User getAuthor() {
 		return this.event.getAuthor();
 	}
 
-	public Member getMember()
-	{
+	/**
+	 * Get corresponding member of event
+	 *
+	 * @return {@link net.dv8tion.jda.api.entities.Member Member} if event
+ 	 */
+	public Member getMember() {
 		return this.event.getMember();
 	}
 
-	public Message getMessage()
-	{
+	/**
+	 * Get corresponding message of event
+	 *
+	 * @return {@link net.dv8tion.jda.api.entities.Message Message} of event
+	 */
+	public Message getMessage() {
 		return this.event.getMessage();
 	}
 
-	public TextChannel getChannel()
-	{
+	/**
+	 * Get corresponding channel of event
+	 *
+	 * @return {@link net.dv8tion.jda.api.entities.TextChannel TextChannel} of event
+	 */
+	public TextChannel getChannel() {
 		return this.event.getChannel();
 	}
 
-	public User getSelfUser()
-	{
+	/**
+	 * Get corresponding self user of JDA instance
+	 *
+	 * @return {@link net.dv8tion.jda.api.entities.SelfUser SelfUser} of JDA
+	 */
+	public User getSelfUser() {
 		return this.event.getJDA().getSelfUser();
 	}
 
-	public Member getSelfMember()
-	{
+	/**
+	 * Get corresponding self member of guild of event
+	 *
+	 * @return {@link net.dv8tion.jda.api.entities.Member Member} of event
+	 */
+	public Member getSelfMember() {
 		return this.event.getGuild().getSelfMember();
 	}
 }
