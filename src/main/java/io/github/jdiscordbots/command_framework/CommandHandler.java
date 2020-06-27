@@ -42,7 +42,7 @@ final class CommandHandler {
 	/**
 	 * Add command to commands map
 	 *
-	 * @param name invoke of command
+	 * @param name    invoke of command
 	 * @param command {@link io.github.jdiscordbots.command_framework.command.ICommand Command}
 	 */
 	static void addCommand(String name, ICommand command) {
@@ -102,7 +102,7 @@ final class CommandHandler {
 		/**
 		 * Parse GuildMessageReceivedEvent and Prefix to CommandContainer
 		 *
-		 * @param event incomming {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
+		 * @param event  incomming {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
 		 * @param prefix prefix
 		 * @return {@link io.github.jdiscordbots.command_framework.CommandHandler.CommandContainer CommandContainer}
 		 */
@@ -161,7 +161,7 @@ final class CommandHandler {
 		 * Construct a new Container by given command invoke and -event
 		 *
 		 * @param invoke name/invoke of command
-		 * @param event {@link io.github.jdiscordbots.command_framework.command.CommandEvent CommandEvent}
+		 * @param event  {@link io.github.jdiscordbots.command_framework.command.CommandEvent CommandEvent}
 		 */
 		public CommandContainer(String invoke, CommandEvent event) {
 			this.invoke = invoke;

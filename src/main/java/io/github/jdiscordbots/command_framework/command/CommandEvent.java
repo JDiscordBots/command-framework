@@ -18,7 +18,7 @@ public class CommandEvent {
 	 * Construct a new CommandEvent
 	 *
 	 * @param event incomming {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
-	 * @param args Command arguments
+	 * @param args  Command arguments
 	 */
 	public CommandEvent(GuildMessageReceivedEvent event, List<String> args) {
 		this.event = event;
@@ -83,7 +83,7 @@ public class CommandEvent {
 	 * Get corresponding member of event
 	 *
 	 * @return {@link net.dv8tion.jda.api.entities.Member Member} if event
- 	 */
+	 */
 	public Member getMember() {
 		return this.event.getMember();
 	}
