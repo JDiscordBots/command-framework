@@ -63,19 +63,19 @@ final class CommandHandler
 				channel.sendMessage("You're not allowed to use this command!").queue();
 			}
 		}
-		else
+		else if (commandContainer.event.getFramework().isUnknownCommand())
 		{
 			// TODO: 09.06.2020 Custom unknown command message 
-			if (commandContainer.event.getFramework().isUnknownCommand() && commandContainer.event.getFramework().getUnknownCommandConsumer() == null)
+			if(commandContainer.event.getFramework().getUnknownCommandConsumer() == null)
 			{
 				final EmbedBuilder eb = new EmbedBuilder()
-					.setColor(Color.red)
-					.setTitle("Unknown command")
-					.setDescription("See `" + commandContainer.event.getFramework().getPrefix() + "help` for more information!");
-				
-				channel.sendMessage(eb.build()).queue();
+						.setColor(Color.red)
+						.setTitle("Unknown command")
+						.setDescription("See `" + commandContainer.event.getFramework().getPrefix() + "help` for more information!");
+					
+					channel.sendMessage(eb.build()).queue();
 			}
-			else if (commandContainer.event.getFramework().isUnknownCommand() && commandContainer.event.getFramework().getUnknownCommandConsumer() != null)
+			else
 			{
 				commandContainer.event.getFramework().getUnknownCommandConsumer().accept(channel);
 			}
@@ -84,6 +84,7 @@ final class CommandHandler
 
 	static final class CommandParser
 	{
+		static final Pattern SPACE_PATTERN=Pattern.compile("\\s+");
 		private CommandParser()
 		{
 			/* Prevent instantiation */
@@ -102,7 +103,8 @@ final class CommandHandler
 				raw = raw.replace("@everyone", "@\u200Beveryone").replace("@here", "@\u200Bhere");
 
 			final String beheaded = raw.replaceFirst(Pattern.quote(prefix), "");
-			final String[] splitBeheaded = beheaded.trim().split("\\s+");
+			
+			final String[] splitBeheaded = SPACE_PATTERN.split(beheaded.trim());
 			final String invoke = splitBeheaded[0];
 			final List<String> split = new ArrayList<>();
 			boolean inQuote = false;
