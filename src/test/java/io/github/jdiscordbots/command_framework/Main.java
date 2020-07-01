@@ -1,5 +1,7 @@
 package io.github.jdiscordbots.command_framework;
 
+import io.github.jdiscordbots.command_framework.command.ICommand;
+import io.github.jdiscordbots.command_framework.commands.ManualCommand;
 import net.dv8tion.jda.api.JDABuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -27,7 +31,11 @@ public class Main {
 				final CommandFramework exclamation = new CommandFramework();
 				final CommandFramework question = new CommandFramework().setPrefix("?");
 
-				JDABuilder.createDefault(token).addEventListeners(exclamation.build(), question.build()).build();
+				final Map<String, ICommand> commands = new HashMap<>();
+				commands.put("manual", new ManualCommand());
+				final CommandFramework manual = new CommandFramework(commands).setPrefix("manual ");
+
+				JDABuilder.createDefault(token).addEventListeners(exclamation.build(), question.build(), manual.build()).build();
 			} else
 				LOG.error("The file .token is empty.");
 		} catch (FileNotFoundException e) {

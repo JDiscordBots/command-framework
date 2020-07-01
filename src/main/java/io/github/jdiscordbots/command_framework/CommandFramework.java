@@ -54,6 +54,15 @@ public class CommandFramework {
 	}
 
 	/**
+	 * Create a CommandFramework and add commands manually
+	 *
+	 * @param commands {@link Map Map} of Name and Command
+	 */
+	public CommandFramework(Map<String, ICommand> commands) {
+		commands.forEach(CommandHandler::addCommand);
+	}
+
+	/**
 	 * Return package path of caller-class
 	 *
 	 * @return package path
