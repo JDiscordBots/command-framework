@@ -123,4 +123,37 @@ public class CommandEvent {
 	public Member getSelfMember() {
 		return this.event.getGuild().getSelfMember();
 	}
+
+	/**
+	 * Reply on Event
+	 * <p>
+	 * Shortcut for <code>event.getChannel().sendMessage(CharSequence).queue()</code>
+	 *
+	 * @param text Text to send
+	 */
+	public void reply(CharSequence text) {
+		this.getChannel().sendMessage(text).queue();
+	}
+
+	/**
+	 * Reply on Event
+	 * <p>
+	 * Shortcut for <code>event.getChannel().sendMessage(Message).queue()</code>
+	 *
+	 * @param msg Message to send
+	 */
+	public void reply(Message msg) {
+		this.getChannel().sendMessage(msg).queue();
+	}
+
+	/**
+	 * Reply on Event
+	 * <p>
+	 * Shortcut for <code>event.getChannel().sendMessage(MessageEmbed).queue()</code>
+	 *
+	 * @param embed MessageEmbed to send
+	 */
+	public void reply(MessageEmbed embed) {
+		this.getChannel().sendMessage(embed).queue();
+	}
 }
