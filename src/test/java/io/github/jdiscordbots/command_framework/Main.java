@@ -24,13 +24,10 @@ public class Main {
 		try (final Scanner sc = new Scanner(new File(".token"))) {
 			if (sc.hasNextLine()) {
 				final String token = sc.nextLine();
-				final CommandFramework framework = new CommandFramework()
-					.onUnknownCommand(channel -> channel.sendMessage("Custom unknown message reply").queue())
-					.setMentionPrefix(true)
-					.setPrefix("nd--")
-					.setOwners(new String[]{"358291050957111296", "321227144791326730"});
+				final CommandFramework exclamation = new CommandFramework();
+				final CommandFramework question = new CommandFramework().setPrefix("?");
 
-				JDABuilder.createDefault(token).addEventListeners(framework.build()).build();
+				JDABuilder.createDefault(token).addEventListeners(exclamation.build(), question.build()).build();
 			} else
 				LOG.error("The file .token is empty.");
 		} catch (FileNotFoundException e) {

@@ -26,8 +26,6 @@ import java.util.function.Consumer;
 public class CommandFramework {
 	private static final Logger LOG = LoggerFactory.getLogger(CommandFramework.class);
 
-	private static CommandFramework instance;
-
 	private Consumer<TextChannel> onUnknownCommandHandler;
 	private String prefix = "!";
 	private String[] owners = {};
@@ -41,8 +39,6 @@ public class CommandFramework {
 	 * @see CommandFramework#CommandFramework()
 	 */
 	public CommandFramework(String commandsPackagePath) {
-		instance = this;
-
 		final Reflections reflections = new Reflections(commandsPackagePath);
 
 		addCommands(reflections);
@@ -107,17 +103,6 @@ public class CommandFramework {
 						cl.getCanonicalName(), e);
 			}
 		}
-	}
-
-	/**
-	 * Get current instance of CommandFramework
-	 * <p>
-	 * NOTE: Currently singleton-system (only one instance possible)
-	 *
-	 * @return {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework}
-	 */
-	public static CommandFramework getInstance() {
-		return instance;
 	}
 
 	/**
@@ -249,7 +234,7 @@ public class CommandFramework {
 	/**
 	 * Get all registered commands of the {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance
 	 *
-	 * @return all registerd commands
+	 * @return all registered commands
 	 * @see io.github.jdiscordbots.command_framework.CommandFramework#addCommands(Reflections)
 	 * @see io.github.jdiscordbots.command_framework.CommandFramework#addAction(Reflections, BiConsumer)
 	 */
@@ -274,6 +259,7 @@ public class CommandFramework {
 	 * CommandListener
 	 */
 	private static final class CommandListener extends ListenerAdapter {
+		private final CommandFramework framework;
 		private final String prefix;
 		private final boolean mentionPrefix;
 
@@ -283,6 +269,7 @@ public class CommandFramework {
 		 * @param framework {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework}
 		 */
 		public CommandListener(CommandFramework framework) {
+			this.framework = framework;
 			this.prefix = framework.getPrefix();
 			this.mentionPrefix = framework.isMentionPrefix();
 		}
@@ -294,6 +281,7 @@ public class CommandFramework {
 		 */
 		@Override
 		public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+			final CommandParser parser = new CommandParser(this.framework);
 			final Message message = event.getMessage();
 			final String contentRaw = message.getContentRaw().trim();
 			final String selfUserId = message.getJDA().getSelfUser().getId();
@@ -304,13 +292,13 @@ public class CommandFramework {
 				return;
 
 			if (this.mentionPrefix && containsMention) {
-				CommandHandler.handle(CommandHandler.CommandParser
-					.parse(event, CommandHandler.CommandParser.SPACE_PATTERN.split(contentRaw)[0] + " "));
+				CommandHandler.handle(parser
+					.parse(event, CommandParser.SPACE_PATTERN.split(contentRaw)[0] + " "));
 				return;
 			}
 
 			if (message.getContentDisplay().startsWith(this.prefix))
-				CommandHandler.handle(CommandHandler.CommandParser.parse(event, prefix));
+				CommandHandler.handle(parser.parse(event, prefix));
 		}
 	}
 }

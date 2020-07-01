@@ -11,16 +11,19 @@ import java.util.List;
  * CommandEvent
  */
 public class CommandEvent {
+	private final CommandFramework framework;
 	private final GuildMessageReceivedEvent event;
 	private final List<String> args;
 
 	/**
 	 * Construct a new CommandEvent
 	 *
-	 * @param event incomming {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
+	 * @param framework {@link CommandFramework CommandFramework}
+	 * @param event incomming {@link GuildMessageReceivedEvent GuildMessageReceivedEvent}
 	 * @param args  Command arguments
 	 */
-	public CommandEvent(GuildMessageReceivedEvent event, List<String> args) {
+	public CommandEvent(CommandFramework framework, GuildMessageReceivedEvent event, List<String> args) {
+		this.framework = framework;
 		this.event = event;
 		this.args = args;
 	}
@@ -31,7 +34,7 @@ public class CommandEvent {
 	 * @return {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance
 	 */
 	public CommandFramework getFramework() {
-		return CommandFramework.getInstance();
+		return this.framework;
 	}
 
 	/**
