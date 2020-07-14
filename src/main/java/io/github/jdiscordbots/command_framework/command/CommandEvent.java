@@ -40,7 +40,7 @@ public class CommandEvent {
 	/**
 	 * Get corresponding message event
 	 *
-	 * @return incomming {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
+	 * @return incoming {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
 	 */
 	public GuildMessageReceivedEvent getEvent() {
 		return this.event;
