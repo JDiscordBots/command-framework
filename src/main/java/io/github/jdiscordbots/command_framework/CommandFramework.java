@@ -1,11 +1,23 @@
 package io.github.jdiscordbots.command_framework;
 
+import io.github.jdiscordbots.command_framework.command.ArgumentTemplate;
 import io.github.jdiscordbots.command_framework.command.Command;
+import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
+import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFrameworkEvent;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction;
+import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.CommandData;
+import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.OptionData;
+
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +27,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class CommandFramework
 {
@@ -26,12 +40,15 @@ public class CommandFramework
 	
 	private static CommandFramework instance;
 
-	private Consumer<TextChannel> unknownCommandConsumer = null;
+	private Consumer<CommandEvent> unknownCommandConsumer = null;
 	private String prefix = "!";
 	private String[] owners = {};
 	private boolean mentionPrefix = true;
 	private boolean unknownCommand = true;
-
+	private boolean slashCommandsPerGuild=false;
+	private boolean acknowledgeSlashCommandsAutomatically=true;
+	private boolean removeUnknownSlashCommands=true;
+	
 	public CommandFramework()
 	{
 		this(getCallerPackageName());
@@ -66,7 +83,7 @@ public class CommandFramework
 		{
 			final Command cmdAsBotCommand = (Command) cmdAsAnnotation;
 			final ICommand cmd = (ICommand) annotatedAsObject;
-
+			
 			for (String alias : cmdAsBotCommand.value())
 				CommandHandler.addCommand(alias.toLowerCase(), cmd);
 		});
@@ -120,6 +137,23 @@ public class CommandFramework
 	public boolean isUnknownCommand() {
 		return unknownCommand;
 	}
+	
+	public CommandFramework setSlashCommandsPerGuild(boolean slashCommandsPerGuild) {
+		this.slashCommandsPerGuild = slashCommandsPerGuild;
+		return this;
+	}
+	
+	public boolean isSlashCommandsPerGuild() {
+		return slashCommandsPerGuild;
+	}
+	
+	public void setAcknowledgeSlashCommandsAutomatically(boolean acknowledgeSlashCommandsAutomatically) {
+		this.acknowledgeSlashCommandsAutomatically = acknowledgeSlashCommandsAutomatically;
+	}
+	
+	public boolean isAcknowledgeSlashCommandsAutomatically() {
+		return acknowledgeSlashCommandsAutomatically;
+	}
 
 	public ListenerAdapter build()
 	{
@@ -127,6 +161,41 @@ public class CommandFramework
 			LOG.debug("Listening to following commands ({}):\n{}", CommandHandler.getCommands().size(), String.join(", ", CommandHandler.getCommands().keySet()));
 		
 		return new CommandListener(this);
+	}
+	
+	
+	private void initializeSlashCommands(JDA jda) {
+		initializeSlashCommands(jda,getSlashCommands());
+	}
+	
+	private void initializeSlashCommands(JDA jda,Collection<CommandData> slashCommands) {
+		if(slashCommandsPerGuild) {
+			for (Guild guild : jda.getGuilds()) {
+				initializeSlashCommands(slashCommands,guild::updateCommands,guild::retrieveCommands);
+			}
+		}else {
+			initializeSlashCommands(slashCommands,jda::updateCommands,jda::retrieveCommands);
+		}
+	}
+	
+	private void initializeSlashCommands(Collection<CommandData> slashCommands,Supplier<CommandUpdateAction> commandUpdater,Supplier<RestAction<List<net.dv8tion.jda.api.entities.Command>>> commandRetriever) {
+		if(removeUnknownSlashCommands) {
+			commandRetriever.get().queue(commands->commands.stream().filter(cmd->slashCommands.stream().noneMatch(sCmd->sCmd.getName().equals(cmd.getName()))).forEach(cmd->cmd.delete().queue()));
+		}
+		commandUpdater.get().addCommands(slashCommands).queue();
+	}
+	
+	private Collection<CommandData> getSlashCommands(){
+		Collection<CommandData> slashCommands=new ArrayList<>();
+		getCommands().forEach((name,cmd)->{
+			CommandData cmdData=new CommandData(name, cmd.help());
+			for (ArgumentTemplate arg : cmd.getExpectedArguments()) {
+				cmdData.addOption(new OptionData(arg.getType(), arg.getName(), arg.getDescription()).setRequired(arg.isRequired()));
+				//TODO support subcommands
+			}
+			slashCommands.add(cmdData);
+		});
+		return slashCommands;
 	}
 
 	public static CommandFramework getInstance() {
@@ -141,11 +210,11 @@ public class CommandFramework
 		return owners;
 	}
 
-	Consumer<TextChannel> getUnknownCommandConsumer() {
+	Consumer<CommandEvent> getUnknownCommandConsumer() {
 		return unknownCommandConsumer;
 	}
 
-	public CommandFramework setUnknownMessage(Consumer<TextChannel> unknownCommandConsumer) {
+	public CommandFramework setUnknownMessage(Consumer<CommandEvent> unknownCommandConsumer) {
 		this.unknownCommandConsumer = unknownCommandConsumer;
 		return this.setUnknownCommand(true);
 	}
@@ -166,23 +235,21 @@ public class CommandFramework
 
 	private static final class CommandListener extends ListenerAdapter
 	{
-		private final String prefix;
-		private final boolean mentionPrefix;
+		private final CommandFramework framework;
 
 		public CommandListener(CommandFramework framework)
 		{
-			this(framework.getPrefix(), framework.isMentionPrefix());
-		}
-
-		// Can be removed
-		private CommandListener(String prefix, boolean mentionPrefix)
-		{
-			this.prefix = prefix;
-			this.mentionPrefix = mentionPrefix;
+			this.framework=framework;
 		}
 
 		@Override
-		public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event)
+		public void onReady(ReadyEvent event) {
+			framework.initializeSlashCommands(event.getJDA());
+		}
+		
+
+		@Override
+		public void onMessageReceived(@Nonnull MessageReceivedEvent event)
 		{
 			final Message message = event.getMessage();
 			final String contentRaw = message.getContentRaw().trim();
@@ -193,14 +260,21 @@ public class CommandFramework
 			if (message.getAuthor().isBot())
 				return;
 
-			if (this.mentionPrefix && containsMention)
+			if (framework.isMentionPrefix() && containsMention)
 			{
 				CommandHandler.handle(CommandHandler.CommandParser.parse(event, CommandHandler.CommandParser.SPACE_PATTERN.split(contentRaw)[0] + " "));
 				return;
 			}
 
-			if (message.getContentDisplay().startsWith(this.prefix))
-				CommandHandler.handle(CommandHandler.CommandParser.parse(event, prefix));
+			if (message.getContentDisplay().startsWith(framework.getPrefix()))
+				CommandHandler.handle(CommandHandler.CommandParser.parse(event, framework.getPrefix()));
+		}
+		
+		@Override
+		public void onSlashCommand(SlashCommandEvent event) {
+			SlashCommandFrameworkEvent frameworkEvent = new SlashCommandFrameworkEvent(event);
+			frameworkEvent.acknowledge();
+			CommandHandler.handle(new CommandHandler.CommandContainer(event.getCommandPath(), frameworkEvent));
 		}
 	}
 }

@@ -3,72 +3,41 @@ package io.github.jdiscordbots.command_framework.command;
 import io.github.jdiscordbots.command_framework.CommandFramework;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.util.List;
 
-public class CommandEvent
-{
-	private final GuildMessageReceivedEvent event;
-	private final List<String> args;
+public interface CommandEvent {
 
-	public CommandEvent(GuildMessageReceivedEvent event, List<String> args)
-	{
-		this.event = event;
-		this.args = args;
-	}
+	CommandFramework getFramework();
 
-	public CommandFramework getFramework() {
-		return CommandFramework.getInstance();
-	}
+	List<Argument> getArgs();
+	
+	Guild getGuild();
 
-	public GuildMessageReceivedEvent getEvent()
-	{
-		return this.event;
-	}
+	JDA getJDA();
 
-	public List<String> getArgs()
-	{
-		return this.args;
-	}
+	User getAuthor();
 
-	public Guild getGuild()
-	{
-		return this.event.getGuild();
-	}
+	Member getMember();
 
-	public JDA getJDA()
-	{
-		return this.event.getJDA();
-	}
+	MessageChannel getChannel();
+	
+	User getSelfUser();
 
-	public User getAuthor()
-	{
-		return this.event.getAuthor();
-	}
+	Member getSelfMember();
+	
+	String getId();
+	
+	PrivateChannel getPrivateChannel();
+	
+	Message getMessage();//slash commands: create new SystemMessage
+	
+	long getIdLong();
 
-	public Member getMember()
-	{
-		return this.event.getMember();
-	}
+	void reply(String message);
 
-	public Message getMessage()
-	{
-		return this.event.getMessage();
-	}
-
-	public TextChannel getChannel()
-	{
-		return this.event.getChannel();
-	}
-
-	public User getSelfUser()
-	{
-		return this.event.getJDA().getSelfUser();
-	}
-
-	public Member getSelfMember()
-	{
-		return this.event.getGuild().getSelfMember();
-	}
+	void reply(MessageEmbed message);
+	
+	void reply(Message message);
+	
 }

@@ -1,5 +1,7 @@
 package io.github.jdiscordbots.command_framework.command;
 
+import java.util.List;
+
 public interface ICommand
 {
 	void action(CommandEvent event);
@@ -10,4 +12,6 @@ public interface ICommand
 	}
 
 	String help();
+	
+	List<ArgumentTemplate> getExpectedArguments();
 }

@@ -1,5 +1,6 @@
 package io.github.jdiscordbots.command_framework;
 
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 
 import javax.security.auth.login.LoginException;
@@ -21,10 +22,11 @@ public class Main
 				String token = sc.nextLine();
 				final JDABuilder builder = JDABuilder.createDefault(token);
 				final CommandFramework framework = new CommandFramework()
-					.setUnknownMessage(channel -> channel.sendMessage("Custom unknown message reply").queue())
+					.setUnknownMessage(event -> event.reply("Custom unknown message reply"))
 					.setMentionPrefix(true)
 					.setPrefix("nd--")
-					.setOwners(new String[] {"358291050957111296", "321227144791326730"});
+					.setOwners(new String[] {"358291050957111296", "321227144791326730"})
+					.setSlashCommandsPerGuild(false);
 
 				builder.addEventListeners(framework.build()).build();
 			}else
