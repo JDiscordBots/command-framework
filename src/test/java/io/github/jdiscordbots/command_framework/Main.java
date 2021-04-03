@@ -1,6 +1,5 @@
 package io.github.jdiscordbots.command_framework;
 
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 
 import javax.security.auth.login.LoginException;
@@ -26,7 +25,7 @@ public class Main
 					.setMentionPrefix(true)
 					.setPrefix("nd--")
 					.setOwners(new String[] {"358291050957111296", "321227144791326730"})
-					.setSlashCommandsPerGuild(false);
+					.setSlashCommandsPerGuild(true);
 
 				builder.addEventListeners(framework.build()).build();
 			}else

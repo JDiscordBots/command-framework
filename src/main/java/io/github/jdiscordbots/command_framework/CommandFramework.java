@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction;
@@ -46,7 +45,6 @@ public class CommandFramework
 	private boolean mentionPrefix = true;
 	private boolean unknownCommand = true;
 	private boolean slashCommandsPerGuild=false;
-	private boolean acknowledgeSlashCommandsAutomatically=true;
 	private boolean removeUnknownSlashCommands=true;
 	
 	public CommandFramework()
@@ -147,14 +145,14 @@ public class CommandFramework
 		return slashCommandsPerGuild;
 	}
 	
-	public void setAcknowledgeSlashCommandsAutomatically(boolean acknowledgeSlashCommandsAutomatically) {
-		this.acknowledgeSlashCommandsAutomatically = acknowledgeSlashCommandsAutomatically;
+	public void setRemoveUnknownSlashCommands(boolean removeUnknownSlashCommands) {
+		this.removeUnknownSlashCommands = removeUnknownSlashCommands;
 	}
 	
-	public boolean isAcknowledgeSlashCommandsAutomatically() {
-		return acknowledgeSlashCommandsAutomatically;
+	public boolean isRemoveUnknownSlashCommands() {
+		return removeUnknownSlashCommands;
 	}
-
+	
 	public ListenerAdapter build()
 	{
 		if(LOG.isDebugEnabled())
@@ -164,40 +162,6 @@ public class CommandFramework
 	}
 	
 	
-	private void initializeSlashCommands(JDA jda) {
-		initializeSlashCommands(jda,getSlashCommands());
-	}
-	
-	private void initializeSlashCommands(JDA jda,Collection<CommandData> slashCommands) {
-		if(slashCommandsPerGuild) {
-			for (Guild guild : jda.getGuilds()) {
-				initializeSlashCommands(slashCommands,guild::updateCommands,guild::retrieveCommands);
-			}
-		}else {
-			initializeSlashCommands(slashCommands,jda::updateCommands,jda::retrieveCommands);
-		}
-	}
-	
-	private void initializeSlashCommands(Collection<CommandData> slashCommands,Supplier<CommandUpdateAction> commandUpdater,Supplier<RestAction<List<net.dv8tion.jda.api.entities.Command>>> commandRetriever) {
-		if(removeUnknownSlashCommands) {
-			commandRetriever.get().queue(commands->commands.stream().filter(cmd->slashCommands.stream().noneMatch(sCmd->sCmd.getName().equals(cmd.getName()))).forEach(cmd->cmd.delete().queue()));
-		}
-		commandUpdater.get().addCommands(slashCommands).queue();
-	}
-	
-	private Collection<CommandData> getSlashCommands(){
-		Collection<CommandData> slashCommands=new ArrayList<>();
-		getCommands().forEach((name,cmd)->{
-			CommandData cmdData=new CommandData(name, cmd.help());
-			for (ArgumentTemplate arg : cmd.getExpectedArguments()) {
-				cmdData.addOption(new OptionData(arg.getType(), arg.getName(), arg.getDescription()).setRequired(arg.isRequired()));
-				//TODO support subcommands
-			}
-			slashCommands.add(cmdData);
-		});
-		return slashCommands;
-	}
-
 	public static CommandFramework getInstance() {
 		return instance;
 	}
@@ -244,7 +208,44 @@ public class CommandFramework
 
 		@Override
 		public void onReady(ReadyEvent event) {
-			framework.initializeSlashCommands(event.getJDA());
+			initializeSlashCommands(event.getJDA());
+		}
+		
+		private void initializeSlashCommands(JDA jda) {
+			initializeSlashCommands(jda,getSlashCommands());
+		}
+		
+		private void initializeSlashCommands(JDA jda,Collection<CommandData> slashCommands) {
+			if(framework.isSlashCommandsPerGuild()) {
+				for (Guild guild : jda.getGuilds()) {
+					initializeSlashCommands(slashCommands,guild::updateCommands,guild::retrieveCommands);
+				}
+			}else {
+				initializeSlashCommands(slashCommands,jda::updateCommands,jda::retrieveCommands);
+			}
+		}
+		
+		private void initializeSlashCommands(Collection<CommandData> slashCommands,Supplier<CommandUpdateAction> commandUpdater,Supplier<RestAction<List<net.dv8tion.jda.api.entities.Command>>> commandRetriever) {
+			CommandUpdateAction commandsAction = commandUpdater.get().addCommands(slashCommands);
+			if(framework.isRemoveUnknownSlashCommands()) {
+				commandRetriever.get().queue(commands->commands.stream().filter(cmd->slashCommands.stream().noneMatch(sCmd->sCmd.getName().equals(cmd.getName()))).forEach(cmd->{
+					cmd.delete().queue();
+				}));
+			}
+			commandsAction.queue();
+		}
+		
+		private Collection<CommandData> getSlashCommands(){
+			Collection<CommandData> slashCommands=new ArrayList<>();
+			framework.getCommands().forEach((name,cmd)->{
+				CommandData cmdData=new CommandData(name, cmd.help());
+				for (ArgumentTemplate arg : cmd.getExpectedArguments()) {
+					cmdData.addOption(new OptionData(arg.getType(), arg.getName(), arg.getDescription()).setRequired(arg.isRequired()));
+					//TODO support subcommands
+				}
+				slashCommands.add(cmdData);
+			});
+			return slashCommands;
 		}
 		
 
@@ -273,7 +274,7 @@ public class CommandFramework
 		@Override
 		public void onSlashCommand(SlashCommandEvent event) {
 			SlashCommandFrameworkEvent frameworkEvent = new SlashCommandFrameworkEvent(event);
-			frameworkEvent.acknowledge();
+			event.acknowledge().queue();
 			CommandHandler.handle(new CommandHandler.CommandContainer(event.getCommandPath(), frameworkEvent));
 		}
 	}

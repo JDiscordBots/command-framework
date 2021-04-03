@@ -15,7 +15,7 @@ public class FrameworkCommand implements ICommand
 	@Override
 	public void action(CommandEvent event)
 	{
-		event.reply("Framework: Command framework by JDiscordBots");
+		event.reply("Framework: Command framework by JDiscordBots").queue();
 	}
 
 	@Override

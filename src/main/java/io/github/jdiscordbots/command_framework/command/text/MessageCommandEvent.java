@@ -6,7 +6,7 @@ import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.requests.RestAction;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,18 +76,18 @@ public class MessageCommandEvent implements CommandEvent {
 	}
 
 	@Override
-	public void reply(String message) {
-		event.getMessage().reply(message).queue();
+	public RestAction<Message> reply(String message) {
+		return event.getMessage().reply(message);
 	}
 
 	@Override
-	public void reply(MessageEmbed message) {
-		event.getMessage().reply(message).queue();
+	public RestAction<Message> reply(MessageEmbed message) {
+		return event.getMessage().reply(message);
 	}
 
 	@Override
-	public void reply(Message message) {
-		event.getMessage().reply(message).queue();
+	public RestAction<Message> reply(Message message) {
+		return event.getMessage().reply(message);
 	}
 
 	

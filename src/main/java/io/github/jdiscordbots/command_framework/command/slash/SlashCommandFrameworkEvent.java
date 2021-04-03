@@ -20,28 +20,24 @@ import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.internal.entities.SystemMessage;
 
-public class SlashCommandFrameworkEvent implements CommandEvent{
+public class SlashCommandFrameworkEvent implements CommandEvent {
 
 	private final SlashCommandEvent event;
 	private List<Argument> args;
-	private boolean acknowledged;
 	private Message firstMessage;
-	
+
 	public SlashCommandFrameworkEvent(SlashCommandEvent event) {
 		this.event = event;
 	}
-	
+
 	public void loadArguments(Collection<ArgumentTemplate> expectedArgs) {
-		if(args==null) {
-			this.args=expectedArgs.stream()
-				.map(ArgumentTemplate::getName)
-				.map(event::getOption)
-				.filter(Objects::nonNull)
-				.map(SlashArgument::new)
-				.collect(Collectors.toList());
-		}else {
+		if (args == null) {
+			this.args = expectedArgs.stream().map(ArgumentTemplate::getName).map(event::getOption)
+					.filter(Objects::nonNull).map(SlashArgument::new).collect(Collectors.toList());
+		} else {
 			throw new IllegalStateException("Arguments can only be loaded once");
 		}
 	}
@@ -103,8 +99,11 @@ public class SlashCommandFrameworkEvent implements CommandEvent{
 
 	@Override
 	public Message getMessage() {
-		if(firstMessage==null) {
-			return new SystemMessage(getIdLong(), getChannel(), MessageType.APPLICATION_COMMAND, true, false, null, null, false, false, getArgs().stream().map(Argument::getAsString).collect(Collectors.joining(" ")), "", getAuthor(), getMember(), null, null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), 0);
+		if (firstMessage == null) {
+			return new SystemMessage(getIdLong(), getChannel(), MessageType.APPLICATION_COMMAND, true, false, null,
+					null, false, false, getArgs().stream().map(Argument::getAsString).collect(Collectors.joining(" ")),
+					"", getAuthor(), getMember(), null, null, Collections.emptyList(), Collections.emptyList(),
+					Collections.emptyList(), 0);
 		}
 		return firstMessage;
 	}
@@ -115,38 +114,24 @@ public class SlashCommandFrameworkEvent implements CommandEvent{
 	}
 
 	@Override
-	public void reply(String message) {
-		if(acknowledged) {
-			event.getHook().sendMessage(message).queue();
-		}else {
-			event.reply(message).queue();
-		}
+	public RestAction<Message> reply(String message) {
+		return event.getHook().sendMessage(message).map(this::saveMessageIfFirst);
 	}
-	
+
 	@Override
-	public void reply(Message message) {
-		if(acknowledged) {
-			event.getHook().sendMessage(message).queue();
-		}else {
-			event.reply(message).queue();
-			acknowledged=true;
-		}
+	public RestAction<Message> reply(Message message) {
+		return event.getHook().sendMessage(message).map(this::saveMessageIfFirst);
 	}
-	
+
 	@Override
-	public void reply(MessageEmbed message) {
-		if(acknowledged) {
-			event.getHook().sendMessage(message).queue();
-		}else {
-			event.reply(message).queue();
-			acknowledged=true;
-		}
+	public RestAction<Message> reply(MessageEmbed message) {
+		return event.getHook().sendMessage(message).map(this::saveMessageIfFirst);
 	}
 	
-	public void acknowledge() {
-		if(!acknowledged) {
-			event.acknowledge().queue();
-			acknowledged=true;
+	private Message saveMessageIfFirst(Message msg) {
+		if(firstMessage==null) {
+			firstMessage=msg;
 		}
+		return msg;
 	}
 }

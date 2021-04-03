@@ -1,6 +1,7 @@
 package io.github.jdiscordbots.command_framework.command.text;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,9 +19,9 @@ import net.dv8tion.jda.api.entities.User;
 
 public class MessageArgument implements Argument{
 	
-	private static final Pattern USER_FORMAT=Pattern.compile("<@!?(\\\\d+)>");
-	private static final Pattern ROLE_FORMAT=Pattern.compile("<@&(\\\\d+)>");
-	private static final Pattern CHANNEL_FORMAT=Pattern.compile("<#(\\\\d+)>");
+	private static final Pattern USER_FORMAT=Pattern.compile("\\<@!?(\\d+)\\>");
+	private static final Pattern ROLE_FORMAT=Pattern.compile("\\<@&(\\d+)\\>");
+	private static final Pattern CHANNEL_FORMAT=Pattern.compile("\\<#(\\d+)\\>");
 	
 	private Message msg;
 	private String text;
@@ -37,15 +38,8 @@ public class MessageArgument implements Argument{
 
 	@Override
 	public Role getAsRole() {
-		if(!msg.isFromGuild()) {
-			return null;
-		}
-		return getAsMentionedEntity(ROLE_FORMAT, msg.getGuild()::getRoleById);
-	}
-
-	@Override
-	public int getAsInt() {
-		return Integer.parseInt(text);
+		requireInGuild();
+		return getAsMentionedEntityOrThrowIfNotExist(ROLE_FORMAT, msg.getGuild()::getRoleById,()->new IllegalStateException("Argument cannot be converted to Role"));
 	}
 
 	@Override
@@ -65,50 +59,60 @@ public class MessageArgument implements Argument{
 
 	@Override
 	public Member getAsMember() {
-		if(!msg.isFromGuild()) {
-			return null;
-		}
-		return getAsMentionedEntity(USER_FORMAT, msg.getGuild()::getMemberById);
+		requireInGuild();
+		return getAsMentionedEntityOrThrowIfNotExist(USER_FORMAT, msg.getGuild()::getMemberById,()->new IllegalStateException("Argument cannot be converted to Member"));
 	}
 
 	@Override
 	public User getAsUser() {
-		return getAsMentionedEntity(USER_FORMAT, msg.getJDA()::getUserById);
+		return getAsMentionedEntityOrThrowIfNotExist(USER_FORMAT, msg.getJDA()::getUserById,()->new IllegalStateException("Argument cannot be converted to User"));
 	}
 
 	@Override
 	public AbstractChannel getAsChannel() {
-		AbstractChannel channel = getAsGuildChannel();
-		if(channel==null) {
-			channel=getAsChannel();
+		if(msg.isFromGuild()) {
+			return getAsGuildChannel();
+		} else {
+			return getAsPrivateChannel();
 		}
-		return channel;
 	}
 
 	@Override
 	public GuildChannel getAsGuildChannel() {
-		if(!msg.isFromGuild()) {
-			return null;
-		}
-		return getAsMentionedEntity(CHANNEL_FORMAT, msg.getGuild()::getGuildChannelById);
+		requireInGuild();
+		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getGuild()::getGuildChannelById,()->new IllegalStateException("Argument cannot be converted to guild channel"));
 	}
 
 	@Override
 	public PrivateChannel getAsPrivateChannel() {
-		return getAsMentionedEntity(CHANNEL_FORMAT, msg.getJDA()::getPrivateChannelById);
+		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getJDA()::getPrivateChannelById,()->new IllegalStateException("Argument cannot be converted to private channel"));
 	}
 
 	@Override
 	public MessageChannel getAsMessageChannel() {
-		return getAsMentionedEntity(CHANNEL_FORMAT, msg.getJDA()::getTextChannelById);
+		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getJDA()::getTextChannelById,()->new IllegalStateException("Argument cannot be converted to message channel"));
+	}
+	
+	private void requireInGuild() {
+		if(!msg.isFromGuild()) {
+			throw new IllegalStateException("Cannot get member if user is not in guild");
+		}
+	}
+	
+	private <T,E extends Exception> T getAsMentionedEntityOrThrowIfNotExist(Pattern pattern,Function<String,T> converter,Supplier<E> toThrow) throws E{
+		T entity = getAsMentionedEntity(pattern,converter);
+		if(entity==null) {
+			throw toThrow.get();
+		}
+		return entity;
 	}
 	
 	private <T> T getAsMentionedEntity(Pattern pattern,Function<String,T> converter){
 		Matcher matcher = pattern.matcher(text);
 		if(matcher.matches()) {
-			return converter.apply(matcher.group());
+			return converter.apply(matcher.group(1));
 		}
-		return null;
+		return converter.apply(text);
 	}
 
 	@Override

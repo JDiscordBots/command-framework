@@ -47,6 +47,10 @@ public class SlashArgument implements Argument {
 
 	@Override
 	public AbstractChannel getAsChannel() {
+		AbstractChannel chan=option.getAsChannel();
+		if(chan==null) {
+			throw new IllegalStateException("Unsupported channel type");
+		}
 		return option.getAsChannel();
 	}
 
@@ -79,10 +83,4 @@ public class SlashArgument implements Argument {
 	public Role getAsRole() {
 		return option.getAsRole();
 	}
-
-	@Override
-	public int getAsInt() {
-		return (int)option.getAsLong();
-	}
-
 }
