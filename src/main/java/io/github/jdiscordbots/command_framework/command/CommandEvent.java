@@ -41,4 +41,6 @@ public interface CommandEvent {
 	
 	RestAction<Message> reply(Message message);
 	
+	RestAction<Void> deleteOriginalMessage();
+	
 }

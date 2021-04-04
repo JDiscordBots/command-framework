@@ -8,14 +8,18 @@ import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFramew
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Command.OptionType;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction;
+import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.BaseCommand;
 import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.CommandData;
 import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.OptionData;
+import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.SubcommandData;
+import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.SubcommandGroupData;
 
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -238,12 +242,46 @@ public class CommandFramework
 		private Collection<CommandData> getSlashCommands(){
 			Collection<CommandData> slashCommands=new ArrayList<>();
 			framework.getCommands().forEach((name,cmd)->{
-				CommandData cmdData=new CommandData(name, cmd.help());
+				
+				CommandData commandData=new CommandData(name, cmd.help());
+				SubcommandGroupData groupData=null;
+				SubcommandData subCommandData=null;
 				for (ArgumentTemplate arg : cmd.getExpectedArguments()) {
-					cmdData.addOption(new OptionData(arg.getType(), arg.getName(), arg.getDescription()).setRequired(arg.isRequired()));
-					//TODO support subcommands
+					
+					switch(arg.getType()) {
+					case SUB_COMMAND:
+						subCommandData=new SubcommandData(arg.getName(), arg.getDescription());
+						if(groupData==null) {
+							commandData.addSubcommand(subCommandData);
+						}else {
+							groupData.addSubcommand(subCommandData);
+						}
+						break;
+					case SUB_COMMAND_GROUP:
+						groupData=new SubcommandGroupData(arg.getName(), arg.getDescription());
+						commandData.addSubcommandGroup(groupData);
+						break;
+					default:
+						OptionData option=new OptionData(arg.getType(), arg.getName(), arg.getDescription());
+						option.setRequired(arg.isRequired());
+						if(arg.hasChoices()) {
+							for (String choice : arg.getChoices()) {
+								if(arg.getType()==OptionType.INTEGER) {
+									option.addChoice(choice, Integer.parseInt(choice));
+								}else {
+									option.addChoice(choice, choice);
+								}
+							}
+						}
+						if(subCommandData==null) {
+							commandData.addOption(option);
+						}else {
+							subCommandData.addOption(option);
+						}
+					
+					}
 				}
-				slashCommands.add(cmdData);
+				slashCommands.add(commandData);
 			});
 			return slashCommands;
 		}
@@ -273,9 +311,9 @@ public class CommandFramework
 		
 		@Override
 		public void onSlashCommand(SlashCommandEvent event) {
-			SlashCommandFrameworkEvent frameworkEvent = new SlashCommandFrameworkEvent(event);
 			event.acknowledge().queue();
-			CommandHandler.handle(new CommandHandler.CommandContainer(event.getCommandPath(), frameworkEvent));
+			SlashCommandFrameworkEvent frameworkEvent = new SlashCommandFrameworkEvent(event);
+			CommandHandler.handle(new CommandHandler.CommandContainer(event.getName(), frameworkEvent));
 		}
 	}
 }

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.github.jdiscordbots.command_framework.CommandFramework;
 import io.github.jdiscordbots.command_framework.command.Argument;
@@ -20,7 +21,9 @@ import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent.OptionData;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.utils.data.DataObject;
 import net.dv8tion.jda.internal.entities.SystemMessage;
 
 public class SlashCommandFrameworkEvent implements CommandEvent {
@@ -35,11 +38,15 @@ public class SlashCommandFrameworkEvent implements CommandEvent {
 
 	public void loadArguments(Collection<ArgumentTemplate> expectedArgs) {
 		if (args == null) {
-			this.args = expectedArgs.stream().map(ArgumentTemplate::getName).map(event::getOption)
-					.filter(Objects::nonNull).map(SlashArgument::new).collect(Collectors.toList());
+			this.args = Stream.concat(Stream.of(event.getSubcommandGroup(),event.getSubcommandName()).map(this::createOptionDataFromString), expectedArgs.stream().map(ArgumentTemplate::getName).map(event::getOption)
+					.filter(Objects::nonNull).map(SlashArgument::new)).collect(Collectors.toList());
 		} else {
 			throw new IllegalStateException("Arguments can only be loaded once");
 		}
+	}
+	
+	private Argument createOptionDataFromString(String in) {
+		return new SlashArgument(new OptionData(new DataObject(Collections.singletonMap("value", in)) {}, null));
 	}
 
 	@Override
@@ -133,5 +140,10 @@ public class SlashCommandFrameworkEvent implements CommandEvent {
 			firstMessage=msg;
 		}
 		return msg;
+	}
+	
+	@Override
+	public RestAction<Void> deleteOriginalMessage() {
+		return event.getHook().deleteOriginal();
 	}
 }

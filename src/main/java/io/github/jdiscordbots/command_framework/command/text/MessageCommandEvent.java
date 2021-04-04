@@ -106,5 +106,8 @@ public class MessageCommandEvent implements CommandEvent {
 		return event.getMessage().getPrivateChannel();
 	}
 
-	
+	@Override
+	public RestAction<Void> deleteOriginalMessage() {
+		return event.getMessage().delete();
+	}
 }
