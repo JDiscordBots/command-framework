@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MessageCommandEvent implements CommandEvent {
+public final class MessageCommandEvent implements CommandEvent {
 	private final MessageReceivedEvent event;
 	private final List<Argument> args;
 
@@ -66,7 +66,7 @@ public class MessageCommandEvent implements CommandEvent {
 	}
 
 	@Override
-	public User getSelfUser() {
+	public SelfUser getSelfUser() {
 		return this.event.getJDA().getSelfUser();
 	}
 

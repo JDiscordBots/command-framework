@@ -2,7 +2,9 @@ package io.github.jdiscordbots.command_framework.command.slash;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -19,6 +21,7 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.SelfUser;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent.OptionData;
@@ -26,7 +29,7 @@ import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.data.DataObject;
 import net.dv8tion.jda.internal.entities.SystemMessage;
 
-public class SlashCommandFrameworkEvent implements CommandEvent {
+public final class SlashCommandFrameworkEvent implements CommandEvent {
 
 	private final SlashCommandEvent event;
 	private List<Argument> args;
@@ -36,17 +39,28 @@ public class SlashCommandFrameworkEvent implements CommandEvent {
 		this.event = event;
 	}
 
-	public void loadArguments(Collection<ArgumentTemplate> expectedArgs) {
+	public synchronized void loadArguments(Collection<ArgumentTemplate> expectedArgs) {
 		if (args == null) {
-			this.args = Stream.concat(Stream.of(event.getSubcommandGroup(),event.getSubcommandName()).map(this::createOptionDataFromString), expectedArgs.stream().map(ArgumentTemplate::getName).map(event::getOption)
-					.filter(Objects::nonNull).map(SlashArgument::new)).collect(Collectors.toList());
+			this.args = Stream.concat(
+					Stream.of(event.getSubcommandGroup(), event.getSubcommandName())
+							.map(SlashCommandFrameworkEvent::createOptionDataFromString),
+					expectedArgs.stream().map(ArgumentTemplate::getName).map(event::getOption).filter(Objects::nonNull)
+							.map(SlashArgument::new))
+					.collect(Collectors.toList());
 		} else {
 			throw new IllegalStateException("Arguments can only be loaded once");
 		}
 	}
 	
-	private Argument createOptionDataFromString(String in) {
-		return new SlashArgument(new OptionData(new DataObject(Collections.singletonMap("value", in)) {}, null));
+	private static Argument createOptionDataFromString(String in) {
+		return new SlashArgument(new OptionData(new DataObject(creationOptionDataMap(in)) {}, null));
+	}
+	
+	private static Map<String, Object> creationOptionDataMap(String in){
+		Map<String, Object> ret=new HashMap<>();
+		ret.put("value", in);
+		ret.put("name", "subcommand");
+		return ret;
 	}
 
 	@Override
@@ -85,7 +99,7 @@ public class SlashCommandFrameworkEvent implements CommandEvent {
 	}
 
 	@Override
-	public User getSelfUser() {
+	public SelfUser getSelfUser() {
 		return getJDA().getSelfUser();
 	}
 

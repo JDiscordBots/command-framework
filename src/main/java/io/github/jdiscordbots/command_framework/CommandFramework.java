@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction;
-import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.BaseCommand;
 import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.CommandData;
 import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.OptionData;
 import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction.SubcommandData;

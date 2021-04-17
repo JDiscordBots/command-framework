@@ -4,7 +4,7 @@ import io.github.jdiscordbots.command_framework.command.CommandEvent;
 
 import java.util.Arrays;
 
-public class PermissionUtils
+public final class PermissionUtils
 {
 	private PermissionUtils()
 	{

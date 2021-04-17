@@ -6,18 +6,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.jdiscordbots.command_framework.command.Argument;
-import net.dv8tion.jda.api.entities.AbstractChannel;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Command.OptionType;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 
-public class MessageArgument implements Argument{
+public final class MessageArgument implements Argument{
 	
 	private static final Pattern USER_FORMAT=Pattern.compile("\\<@!?(\\d+)\\>");
 	private static final Pattern ROLE_FORMAT=Pattern.compile("\\<@&(\\d+)\\>");
@@ -69,23 +67,9 @@ public class MessageArgument implements Argument{
 	}
 
 	@Override
-	public AbstractChannel getAsChannel() {
-		if(msg.isFromGuild()) {
-			return getAsGuildChannel();
-		} else {
-			return getAsPrivateChannel();
-		}
-	}
-
-	@Override
 	public GuildChannel getAsGuildChannel() {
 		requireInGuild();
 		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getGuild()::getGuildChannelById,()->new IllegalStateException("Argument cannot be converted to guild channel"));
-	}
-
-	@Override
-	public PrivateChannel getAsPrivateChannel() {
-		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getJDA()::getPrivateChannelById,()->new IllegalStateException("Argument cannot be converted to private channel"));
 	}
 
 	@Override
@@ -117,7 +101,6 @@ public class MessageArgument implements Argument{
 
 	@Override
 	public ChannelType getChannelType() {
-		AbstractChannel channel = getAsChannel();
-		return channel==null?ChannelType.UNKNOWN:channel.getType();
+		return msg.getChannelType();
 	}
 }

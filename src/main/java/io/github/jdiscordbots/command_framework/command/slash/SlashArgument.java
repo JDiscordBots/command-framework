@@ -1,18 +1,16 @@
 package io.github.jdiscordbots.command_framework.command.slash;
 
 import io.github.jdiscordbots.command_framework.command.Argument;
-import net.dv8tion.jda.api.entities.AbstractChannel;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Command.OptionType;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent.OptionData;
 
-public class SlashArgument implements Argument {
+public final class SlashArgument implements Argument {
 	
 	private OptionData option;
 	
@@ -46,22 +44,8 @@ public class SlashArgument implements Argument {
 	}
 
 	@Override
-	public AbstractChannel getAsChannel() {
-		AbstractChannel chan=option.getAsChannel();
-		if(chan==null) {
-			throw new IllegalStateException("Unsupported channel type");
-		}
-		return option.getAsChannel();
-	}
-
-	@Override
 	public GuildChannel getAsGuildChannel() {
 		return option.getAsGuildChannel();
-	}
-
-	@Override
-	public PrivateChannel getAsPrivateChannel() {
-		return option.getAsPrivateChannel();
 	}
 
 	@Override
