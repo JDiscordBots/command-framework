@@ -24,7 +24,7 @@ import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.SelfUser;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent.OptionData;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.data.DataObject;
 import net.dv8tion.jda.internal.entities.SystemMessage;
@@ -53,7 +53,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	}
 	
 	private static Argument createOptionDataFromString(String in) {
-		return new SlashArgument(new OptionData(new DataObject(creationOptionDataMap(in)) {}, null));
+		return new SlashArgument(new OptionMapping(new DataObject(creationOptionDataMap(in)) {}, null));
 	}
 	
 	private static Map<String, Object> creationOptionDataMap(String in){
@@ -110,7 +110,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 
 	@Override
 	public String getId() {
-		return event.getInteractionId();
+		return event.getInteraction().getId();
 	}
 
 	@Override
@@ -124,14 +124,14 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 			return new SystemMessage(getIdLong(), getChannel(), MessageType.APPLICATION_COMMAND, true, false, null,
 					null, false, false, getArgs().stream().map(Argument::getAsString).collect(Collectors.joining(" ")),
 					"", getAuthor(), getMember(), null, null, Collections.emptyList(), Collections.emptyList(),
-					Collections.emptyList(), 0);
+					Collections.emptyList(), Collections.emptyList(), 0);
 		}
 		return firstMessage;
 	}
 
 	@Override
 	public long getIdLong() {
-		return event.getInteractionIdLong();
+		return event.getInteraction().getIdLong();
 	}
 
 	@Override
@@ -146,7 +146,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 
 	@Override
 	public RestAction<Message> reply(MessageEmbed message) {
-		return event.getHook().sendMessage(message).map(this::saveMessageIfFirst);
+		return event.getHook().sendMessageEmbeds(message).map(this::saveMessageIfFirst);
 	}
 	
 	private Message saveMessageIfFirst(Message msg) {

@@ -8,14 +8,14 @@ import io.github.jdiscordbots.command_framework.command.Command;
 import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Command.OptionType;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 @Command("test")
 public class TestCommand implements ICommand {
 	@Override
 	public void action(CommandEvent event) {
 		event.reply(new EmbedBuilder()
-				.setDescription(event.getArgs().get(2).getAsString())
+				.setDescription(event.getArgs().size()>2?event.getArgs().get(2).getAsString():"n/A")
 				.addField("subcommand group",event.getArgs().get(0).getAsString(),false)
 				.addField("subcommand name",event.getArgs().get(1).getAsString(),false)
 				.build()).queue();

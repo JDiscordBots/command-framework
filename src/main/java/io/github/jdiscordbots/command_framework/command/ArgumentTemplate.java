@@ -3,7 +3,7 @@ package io.github.jdiscordbots.command_framework.command;
 import java.util.Arrays;
 import java.util.Objects;
 
-import net.dv8tion.jda.api.entities.Command.OptionType;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 /**
  * Represents an expected parameter of a command

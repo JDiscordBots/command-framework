@@ -2,24 +2,25 @@ package io.github.jdiscordbots.command_framework.command.slash;
 
 import io.github.jdiscordbots.command_framework.command.Argument;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.Command.OptionType;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent.OptionData;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 public final class SlashArgument implements Argument {
 	
-	private OptionData option;
+	private OptionMapping option;
 	
-	public SlashArgument(OptionData option) {
+	public SlashArgument(OptionMapping option) {
 		this.option=option;
 	}
 	
 	@Override
 	public boolean getAsBoolean() {
+		
 		return option.getAsBoolean();
 	}
 
