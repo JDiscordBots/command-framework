@@ -5,6 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.Contract;
 
 import io.github.jdiscordbots.command_framework.CommandFramework;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 
 /**
  * Commands should implement this interface.
@@ -22,6 +23,14 @@ public interface ICommand
 	 * @param event A {@link CommandEvent} representing from the invoked command and allowing to respond to the command
 	 */
 	void action(CommandEvent event);
+	
+	/**
+	 * This method is executed on every button click where the button id equals the name of the command.
+	 * @param event A {@link ButtonClickEvent} representing the clicked button.
+	 */
+	default void onButtonClick(ButtonClickEvent event) {
+		event.deferEdit().queue();
+	}
 
 	/**
 	 * Checks if a command should be executed.

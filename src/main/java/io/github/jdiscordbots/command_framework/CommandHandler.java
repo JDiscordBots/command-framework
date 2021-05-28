@@ -8,12 +8,14 @@ import io.github.jdiscordbots.command_framework.command.text.MessageCommandEvent
 import io.github.jdiscordbots.command_framework.command.text.MessageArgument;
 import io.github.jdiscordbots.command_framework.utils.PermissionUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -72,7 +74,8 @@ final class CommandHandler
 		else if (commandContainer.event.getFramework().isUnknownCommand())
 		{
 			// TODO: 09.06.2020 Custom unknown command message 
-			if(commandContainer.event.getFramework().getUnknownCommandConsumer() == null)
+			Consumer<CommandEvent> unknownCommandConsumer = commandContainer.event.getFramework().getUnknownCommandConsumer();
+			if(unknownCommandConsumer == null)
 			{
 				final EmbedBuilder eb = new EmbedBuilder()
 						.setColor(Color.red)
@@ -83,7 +86,7 @@ final class CommandHandler
 			}
 			else
 			{
-				commandContainer.event.getFramework().getUnknownCommandConsumer().accept(event);
+				unknownCommandConsumer.accept(event);
 			}
 		}
 	}
@@ -149,6 +152,24 @@ final class CommandHandler
 			this.invoke = invoke;
 			this.args = event.getArgs();
 			this.event = event;
+		}
+	}
+
+	public static void handleButtonClick(ButtonClickEvent event) {
+		String btnId=event.getButton().getId();
+		if(btnId!=null) {
+			String btnIdPrefix=CommandParser.SPACE_PATTERN.split(btnId)[0];
+			ICommand cmd = commands.get(btnIdPrefix);
+			if(cmd!=null) {
+				cmd.onButtonClick(event);
+			}else {
+				Consumer<ButtonClickEvent> unknownButtonConsumer = CommandFramework.getInstance().getUnknownButtonConsumer();
+				if(unknownButtonConsumer==null) {
+					event.deferEdit().queue();
+				}else {
+					unknownButtonConsumer.accept(event);
+				}
+			}
 		}
 	}
 }

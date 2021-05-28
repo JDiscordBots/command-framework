@@ -3,6 +3,7 @@ package io.github.jdiscordbots.command_framework.command;
 import io.github.jdiscordbots.command_framework.CommandFramework;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.interactions.components.Component;
 import net.dv8tion.jda.api.requests.RestAction;
 
 import java.util.List;
@@ -122,7 +123,7 @@ public interface CommandEvent {
 	
 	/**
 	 * deletes the message associated with the command
-	 * @return
+	 * @return a {@link RestAction} that finishes once the message is deleted
 	 */
 	@CheckReturnValue
 	RestAction<Void> deleteOriginalMessage();

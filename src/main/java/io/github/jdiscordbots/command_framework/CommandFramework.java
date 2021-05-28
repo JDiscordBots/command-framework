@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -43,6 +44,7 @@ public class CommandFramework
 	private static CommandFramework instance;
 
 	private Consumer<CommandEvent> unknownCommandConsumer = null;
+	private Consumer<ButtonClickEvent> unknownButtonConsumer = null;
 	private String prefix = "!";
 	private String[] owners = {};
 	private boolean mentionPrefix = true;
@@ -185,6 +187,15 @@ public class CommandFramework
 		this.unknownCommandConsumer = unknownCommandConsumer;
 		return this.setUnknownCommand(true);
 	}
+	
+	Consumer<ButtonClickEvent> getUnknownButtonConsumer() {
+		return unknownButtonConsumer;
+	}
+	
+	public CommandFramework setUnknownButton(Consumer<ButtonClickEvent> unknownButtonConsumer) {
+		this.unknownButtonConsumer=unknownButtonConsumer;
+		return this;
+	}
 
 	public boolean isMentionPrefix() {
 		return mentionPrefix;
@@ -313,6 +324,11 @@ public class CommandFramework
 			event.deferReply().queue();
 			SlashCommandFrameworkEvent frameworkEvent = new SlashCommandFrameworkEvent(event);
 			CommandHandler.handle(new CommandHandler.CommandContainer(event.getName(), frameworkEvent));
+		}
+		
+		@Override
+		public void onButtonClick(ButtonClickEvent event) {
+			CommandHandler.handleButtonClick(event);
 		}
 	}
 }

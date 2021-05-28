@@ -8,18 +8,30 @@ import io.github.jdiscordbots.command_framework.command.Command;
 import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Button;
 
 @Command("test")
 public class TestCommand implements ICommand {
 	@Override
 	public void action(CommandEvent event) {
-		event.reply(new EmbedBuilder()
-				.setDescription(event.getArgs().size()>2?event.getArgs().get(2).getAsString():"n/A")
-				.addField("subcommand group",event.getArgs().get(0).getAsString(),false)
-				.addField("subcommand name",event.getArgs().get(1).getAsString(),false)
+		event.reply(new MessageBuilder()
+				.setEmbed(new EmbedBuilder()
+						.setDescription(event.getArgs().size()>2?event.getArgs().get(2).getAsString():"n/A")
+						.addField("subcommand group",event.getArgs().get(0).getAsString(),false)
+						.addField("subcommand name",event.getArgs().get(1).getAsString(),false)
+						.build())
+				.setActionRows(ActionRow.of(Button.success("test btn1", "test-label")))//label needs to start with 'test ' as 'test' is the command name
 				.build()).queue();
 		
+	}
+	
+	@Override
+	public void onButtonClick(ButtonClickEvent event) {
+		event.reply("button clicked").queue();
 	}
 
 	@Override

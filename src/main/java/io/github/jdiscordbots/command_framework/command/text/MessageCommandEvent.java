@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,7 +91,6 @@ public final class MessageCommandEvent implements CommandEvent {
 		return event.getMessage().reply(message);
 	}
 
-	
 	@Override
 	public String getId() {
 		return event.getMessageId();
