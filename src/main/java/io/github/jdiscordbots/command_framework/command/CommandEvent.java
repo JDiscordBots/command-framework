@@ -2,7 +2,9 @@ package io.github.jdiscordbots.command_framework.command;
 
 import io.github.jdiscordbots.command_framework.CommandFramework;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Component;
 import net.dv8tion.jda.api.requests.RestAction;
 
@@ -104,7 +106,7 @@ public interface CommandEvent {
 	 */
 	@CheckReturnValue
 	RestAction<Message> reply(String message);
-
+	
 	/**
 	 * Sends a message in response to the invoked command.
 	 * @param message the message to send as {@link MessageEmbed}
@@ -120,6 +122,64 @@ public interface CommandEvent {
 	 */
 	@CheckReturnValue
 	RestAction<Message> reply(Message message);
+	
+	/**
+	 * Sends a message with action rows in response to the invoked command.
+	 * @param message the message to send as {@link String}
+	 * @param actionRows the action rows to send
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	@CheckReturnValue
+	default RestAction<Message> replyWithActionRows(String message, ActionRow... actionRows) {
+		return replyWithActionRows(message,null,actionRows);
+	}
+	
+	/**
+	 * Sends a message with components in an action row in response to the invoked command.
+	 * @param components the components the action row should consist of
+	 * @param actionRows the action rows to send
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	@CheckReturnValue
+	default RestAction<Message> replyWithActionRow(String message, Component... components) {
+		return replyWithActionRows(message,ActionRow.of(components));
+	}
+	
+	/**
+	 * Sends a message with action rows in response to the invoked command.
+	 * @param message the message to send as {@link MessageEmbed}
+	 * @param actionRows the action rows to send
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	@CheckReturnValue
+	default RestAction<Message> replyWithActionRows(MessageEmbed message, ActionRow... actionRows) {
+		return replyWithActionRows(null,message,actionRows);
+	}
+	
+	/**
+	 * Sends a message with components in an action row in response to the invoked command.
+	 * @param message the message to send as {@link MessageEmbed}
+	 * @param components the components the action row should consist of
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	@CheckReturnValue
+	default RestAction<Message> replyWithActionRow(MessageEmbed message, Component... components) {
+		return replyWithActionRows(null,message,ActionRow.of(components));
+	}
+	
+	/**
+	 * Sends a message with components in an action row in response to the invoked command.
+	 * @param message the message to send as {@link MessageEmbed}
+	 * @param embed the message to send as {@link MessageEmbed}
+	 * @param components the components the action row should consist of
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	default RestAction<Message> replyWithActionRows(String message,MessageEmbed embed,ActionRow... actionRows){
+		return reply(new MessageBuilder(message)
+				.setEmbed(embed)
+				.setActionRows(actionRows)
+				.build());
+	}
 	
 	/**
 	 * deletes the message associated with the command
