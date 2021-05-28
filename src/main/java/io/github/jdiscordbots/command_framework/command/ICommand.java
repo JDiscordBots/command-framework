@@ -1,11 +1,15 @@
 package io.github.jdiscordbots.command_framework.command;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.jetbrains.annotations.Contract;
 
 import io.github.jdiscordbots.command_framework.CommandFramework;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
 
 /**
  * Commands should implement this interface.
@@ -37,8 +41,31 @@ public interface ICommand
 	 * @param event A {@link CommandEvent} representing from the invoked command and allowing to respond to the command
 	 * @return <code>true</code> if the command should be executed
 	 */
+	@Contract(pure = true)
 	default boolean allowExecute(CommandEvent event)
 	{
+		return true;
+	}
+	
+	/**
+	 * Gets the permissions declaring who is able to use the command in a specific {@link Guild}
+	 * 
+	 * @param guild the {@link Guild} to get the privileges
+	 * @return a {@link Collection} containing the command priviliges of the specified {@link Guild}
+	 * @see ICommand#isAvailableToEveryone()
+	 */
+	@Contract(pure = true)
+	default Collection<CommandPrivilege> getPrivileges(Guild guild){
+		return Collections.emptyList();
+	}
+	
+	/**
+	 * checks weather this command can be used by anyone without special permissions.
+	 * @return <code>true</code> if anyone can use the command
+	 * @see ICommand#getPrivileges(Guild)
+	 */
+	@Contract(pure = true)
+	default boolean isAvailableToEveryone() {
 		return true;
 	}
 

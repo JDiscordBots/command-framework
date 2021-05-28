@@ -8,8 +8,12 @@ import io.github.jdiscordbots.command_framework.command.text.MessageCommandEvent
 import io.github.jdiscordbots.command_framework.command.text.MessageArgument;
 import io.github.jdiscordbots.command_framework.utils.PermissionUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +51,16 @@ final class CommandHandler
 		if (commands.containsKey(commandContainer.invoke.toLowerCase()))
 		{
 			final ICommand command = commands.get(commandContainer.invoke.toLowerCase());
-			final boolean canExecute = command.allowExecute(commandContainer.event);
 
+			boolean canExecute=true;
+			
 			if(event instanceof SlashCommandFrameworkEvent) {
 				((SlashCommandFrameworkEvent) event).loadArguments(command.getExpectedArguments());
+			}else {
+				canExecute=hasExecutePrivileges(event.getMember(), command);
 			}
+			
+			canExecute &= command.allowExecute(commandContainer.event);
 			
 			/* Check permission and allow all commands to Owners */
 			if (canExecute || PermissionUtils.checkOwner(commandContainer.event))
@@ -68,12 +77,11 @@ final class CommandHandler
 			}
 			else
 			{
-				event.reply("You're not allowed to use this command!");
+				event.reply("You're not allowed to use this command!").queue();
 			}
 		}
 		else if (commandContainer.event.getFramework().isUnknownCommand())
 		{
-			// TODO: 09.06.2020 Custom unknown command message 
 			Consumer<CommandEvent> unknownCommandConsumer = commandContainer.event.getFramework().getUnknownCommandConsumer();
 			if(unknownCommandConsumer == null)
 			{
@@ -91,6 +99,30 @@ final class CommandHandler
 		}
 	}
 
+	private static boolean hasExecutePrivileges(Member member,ICommand command) {
+		Collection<CommandPrivilege> privileges = command.getPrivileges(member.getGuild());
+		boolean allowed=command.isAvailableToEveryone();
+		
+		for (CommandPrivilege priv : privileges) {
+			switch (priv.getType()) {
+			case ROLE:
+				for (Role role : member.getRoles()) {
+					if(role.getId().equals(role.getId())) {
+						allowed=priv.isEnabled();
+					}
+				}
+				break;
+			case USER:
+				if(member.getId().equals(priv.getId())) {
+					return priv.isEnabled();
+				}
+				break;
+			}
+		}
+		
+		return allowed;
+	}
+	
 	static final class CommandParser
 	{
 		static final Pattern SPACE_PATTERN=Pattern.compile("\\s+");

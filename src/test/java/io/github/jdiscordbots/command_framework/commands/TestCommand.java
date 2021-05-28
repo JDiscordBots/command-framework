@@ -1,6 +1,7 @@
 package io.github.jdiscordbots.command_framework.commands;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import io.github.jdiscordbots.command_framework.command.ArgumentTemplate;
@@ -8,8 +9,10 @@ import io.github.jdiscordbots.command_framework.command.Command;
 import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
 import net.dv8tion.jda.api.interactions.components.Button;
 
 @Command("test")
@@ -34,6 +37,16 @@ public class TestCommand implements ICommand {
 		return "Testing purposes";
 	}
 
+	@Override
+	public boolean isAvailableToEveryone() {
+		return false;
+	}
+	
+	@Override
+	public Collection<CommandPrivilege> getPrivileges(Guild guild) {
+		return Arrays.asList(CommandPrivilege.enableUser(guild.getOwnerId()));
+	}
+	
 	@Override
 	public List<ArgumentTemplate> getExpectedArguments() {
 		return Arrays.asList(

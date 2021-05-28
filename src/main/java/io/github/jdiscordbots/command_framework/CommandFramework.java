@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
+import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.CommandUpdateAction;
 
@@ -25,9 +26,13 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
+
+import java.awt.Event;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +41,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class CommandFramework
 {
@@ -226,27 +232,42 @@ public class CommandFramework
 		}
 		
 		private void initializeSlashCommands(JDA jda) {
-			initializeSlashCommands(jda,getSlashCommands());
+			Collection<CommandData> slashCommands = getSlashCommands();
+			initializeSlashCommands(jda,slashCommands);
 		}
 		
-		private void initializeSlashCommands(JDA jda,Collection<CommandData> slashCommands) {
-			if(framework.isSlashCommandsPerGuild()) {
+		private void initializeSlashCommands(JDA jda, Collection<CommandData> slashCommands) {
+			if (framework.isSlashCommandsPerGuild()) {
 				for (Guild guild : jda.getGuilds()) {
-					initializeSlashCommands(slashCommands,guild::updateCommands,guild::retrieveCommands);
+					initializeSlashCommands(slashCommands, guild::updateCommands, guild::retrieveCommands)
+							.queue(cmds -> setupSlashCommandPermissions(guild, cmds));
 				}
-			}else {
-				initializeSlashCommands(slashCommands,jda::updateCommands,jda::retrieveCommands);
+			} else {
+				initializeSlashCommands(slashCommands, jda::updateCommands, jda::retrieveCommands).queue(cmds -> {
+					for (Guild guild : jda.getGuilds()) {
+						setupSlashCommandPermissions(guild, cmds);
+					}
+				});
 			}
 		}
 		
-		private void initializeSlashCommands(Collection<CommandData> slashCommands,Supplier<CommandUpdateAction> commandUpdater,Supplier<RestAction<List<net.dv8tion.jda.api.interactions.commands.Command>>> commandRetriever) {
+		private void setupSlashCommandPermissions(Guild g,Map<String, String> commandIds) {
+			Map<String, Collection<? extends CommandPrivilege>> privileges = framework.getCommands().entrySet().stream().map(
+					cmd -> new AbstractMap.SimpleEntry<>(commandIds.get(cmd.getKey()), cmd.getValue().getPrivileges(g)))
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			g.updateCommandPrivileges(privileges).queue();
+		}
+		
+		@CheckReturnValue
+		private RestAction<Map<String, String>> initializeSlashCommands(Collection<CommandData> slashCommands,Supplier<CommandUpdateAction> commandUpdater,Supplier<RestAction<List<net.dv8tion.jda.api.interactions.commands.Command>>> commandRetriever) {
 			CommandUpdateAction commandsAction = commandUpdater.get().addCommands(slashCommands);
 			if(framework.isRemoveUnknownSlashCommands()) {
 				commandRetriever.get().queue(commands->commands.stream().filter(cmd->slashCommands.stream().noneMatch(sCmd->sCmd.getName().equals(cmd.getName()))).forEach(cmd->{
 					cmd.delete().queue();
 				}));
 			}
-			commandsAction.queue();
+			
+			return commandsAction.map(commands->commands.stream().collect(Collectors.toMap(cmd->cmd.getName(),cmd->cmd.getId())));
 		}
 		
 		private Collection<CommandData> getSlashCommands(){
@@ -291,6 +312,7 @@ public class CommandFramework
 					
 					}
 				}
+				commandData.setDefaultEnabled(cmd.isAvailableToEveryone());
 				slashCommands.add(commandData);
 			});
 			return slashCommands;
