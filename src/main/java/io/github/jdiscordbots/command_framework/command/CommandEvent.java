@@ -10,10 +10,10 @@ import net.dv8tion.jda.api.requests.RestAction;
 
 import java.util.List;
 
-import javax.annotation.CheckReturnValue;
-
 /**
  * Represents a command that is executed and allows to take actions in response.
+ * 
+ * Implementations of this interface must be thread safe.
  */
 public interface CommandEvent {
 
@@ -104,7 +104,6 @@ public interface CommandEvent {
 	 * @param message the message to send as {@link String}
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	@CheckReturnValue
 	RestAction<Message> reply(String message);
 	
 	/**
@@ -112,7 +111,6 @@ public interface CommandEvent {
 	 * @param message the message to send as {@link MessageEmbed}
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	@CheckReturnValue
 	RestAction<Message> reply(MessageEmbed message);
 	
 	/**
@@ -120,7 +118,6 @@ public interface CommandEvent {
 	 * @param message the message to send as {@link Message}
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	@CheckReturnValue
 	RestAction<Message> reply(Message message);
 	
 	/**
@@ -129,18 +126,16 @@ public interface CommandEvent {
 	 * @param actionRows the action rows to send
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	@CheckReturnValue
 	default RestAction<Message> replyWithActionRows(String message, ActionRow... actionRows) {
 		return replyWithActionRows(message,null,actionRows);
 	}
 	
 	/**
 	 * Sends a message with components in an action row in response to the invoked command.
+	 * @param message the message to send as {@link String}
 	 * @param components the components the action row should consist of
-	 * @param actionRows the action rows to send
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	@CheckReturnValue
 	default RestAction<Message> replyWithActionRow(String message, Component... components) {
 		return replyWithActionRows(message,ActionRow.of(components));
 	}
@@ -151,7 +146,6 @@ public interface CommandEvent {
 	 * @param actionRows the action rows to send
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	@CheckReturnValue
 	default RestAction<Message> replyWithActionRows(MessageEmbed message, ActionRow... actionRows) {
 		return replyWithActionRows(null,message,actionRows);
 	}
@@ -162,7 +156,6 @@ public interface CommandEvent {
 	 * @param components the components the action row should consist of
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	@CheckReturnValue
 	default RestAction<Message> replyWithActionRow(MessageEmbed message, Component... components) {
 		return replyWithActionRows(null,message,ActionRow.of(components));
 	}
@@ -171,7 +164,7 @@ public interface CommandEvent {
 	 * Sends a message with components in an action row in response to the invoked command.
 	 * @param message the message to send as {@link MessageEmbed}
 	 * @param embed the message to send as {@link MessageEmbed}
-	 * @param components the components the action row should consist of
+	 * @param actionRows the action rows to send
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
 	default RestAction<Message> replyWithActionRows(String message,MessageEmbed embed,ActionRow... actionRows){
@@ -185,7 +178,6 @@ public interface CommandEvent {
 	 * deletes the message associated with the command
 	 * @return a {@link RestAction} that finishes once the message is deleted
 	 */
-	@CheckReturnValue
 	RestAction<Void> deleteOriginalMessage();
 	
 }

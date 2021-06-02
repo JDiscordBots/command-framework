@@ -1,5 +1,4 @@
 # Command Framework
-> **Most of the code has been copied from [Nightdream](https://github.com/JDiscordBots/Nightdream)'s Command system which was made by [dan1st](https://github.com/danthe1st)**
 
 ## Usage
 

@@ -21,7 +21,7 @@ public class Main
 				String token = sc.nextLine();
 				final JDABuilder builder = JDABuilder.createDefault(token);
 				final CommandFramework framework = new CommandFramework()
-					.setUnknownMessage(event -> event.reply("Custom unknown message reply"))
+					.setUnknownCommandAction(event -> event.reply("Custom unknown message reply"))
 					.setMentionPrefix(true)
 					.setPrefix("nd--")
 					.setOwners(new String[] {"358291050957111296", "321227144791326730"})

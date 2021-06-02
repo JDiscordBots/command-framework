@@ -12,6 +12,8 @@ import net.dv8tion.jda.api.entities.Guild;
 
 /**
  * Represents an argument of a command.
+ * 
+ * Implementations of this interface must be immutable.
  */
 public interface Argument {
 
@@ -23,7 +25,7 @@ public interface Argument {
 
 	/**
 	 * Gets the type of the argument.
-	 * <br/>
+	 * 
 	 * The argument type is {@link OptionType#STRING} for message arguments
 	 * @return the type of the argument
 	 */

@@ -15,63 +15,94 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 
+/**
+ * An {@link Argument} representing an argument of a text command
+ */
 public final class MessageArgument implements Argument{
 	
 	private static final Pattern USER_FORMAT=Pattern.compile("\\<@!?(\\d+)\\>");
 	private static final Pattern ROLE_FORMAT=Pattern.compile("\\<@&(\\d+)\\>");
 	private static final Pattern CHANNEL_FORMAT=Pattern.compile("\\<#(\\d+)\\>");
 	
-	private Message msg;
-	private String text;
+	private final Message msg;
+	private final String text;
 	
 	public MessageArgument(Message msg, String text) {
 		this.msg=msg;
 		this.text=text;
 	}
 
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String getAsString() {
 		return text;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Role getAsRole() {
 		requireInGuild();
 		return getAsMentionedEntityOrThrowIfNotExist(ROLE_FORMAT, msg.getGuild()::getRoleById,()->new IllegalStateException("Argument cannot be converted to Role"));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean getAsBoolean() {
 		return Boolean.parseBoolean(text);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public OptionType getType() {
 		return OptionType.STRING;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public long getAsLong() {
 		return Long.parseLong(text);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Member getAsMember() {
 		requireInGuild();
 		return getAsMentionedEntityOrThrowIfNotExist(USER_FORMAT, msg.getGuild()::getMemberById,()->new IllegalStateException("Argument cannot be converted to Member"));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public User getAsUser() {
 		return getAsMentionedEntityOrThrowIfNotExist(USER_FORMAT, msg.getJDA()::getUserById,()->new IllegalStateException("Argument cannot be converted to User"));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public GuildChannel getAsGuildChannel() {
 		requireInGuild();
 		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getGuild()::getGuildChannelById,()->new IllegalStateException("Argument cannot be converted to guild channel"));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public MessageChannel getAsMessageChannel() {
 		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getJDA()::getTextChannelById,()->new IllegalStateException("Argument cannot be converted to message channel"));
@@ -99,6 +130,9 @@ public final class MessageArgument implements Argument{
 		return converter.apply(text);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public ChannelType getChannelType() {
 		return msg.getChannelType();

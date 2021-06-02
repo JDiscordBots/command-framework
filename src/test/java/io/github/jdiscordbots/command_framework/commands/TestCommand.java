@@ -26,7 +26,7 @@ public class TestCommand implements ICommand {
 						.addField("subcommand name", event.getArgs().get(1).getAsString(), false).build(),
 				Button.success("test btn1", "test-label")).queue();
 	}
-
+	
 	@Override
 	public void onButtonClick(ButtonClickEvent event) {
 		event.reply("button clicked").queue();

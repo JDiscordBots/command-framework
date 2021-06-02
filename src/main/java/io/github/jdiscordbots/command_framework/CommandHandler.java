@@ -6,7 +6,6 @@ import io.github.jdiscordbots.command_framework.command.ICommand;
 import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFrameworkEvent;
 import io.github.jdiscordbots.command_framework.command.text.MessageCommandEvent;
 import io.github.jdiscordbots.command_framework.command.text.MessageArgument;
-import io.github.jdiscordbots.command_framework.utils.PermissionUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -46,28 +45,30 @@ final class CommandHandler
 
 	public static void handle(final CommandContainer commandContainer)
 	{
-		final CommandEvent event = commandContainer.event;
+		CommandEvent event = commandContainer.event;
+		String cmdIdentifier=commandContainer.invoke.toLowerCase();
 		
-		if (commands.containsKey(commandContainer.invoke.toLowerCase()))
+		if (commands.containsKey(cmdIdentifier))
 		{
-			final ICommand command = commands.get(commandContainer.invoke.toLowerCase());
+			final ICommand command = commands.get(cmdIdentifier);
 
 			boolean canExecute=true;
 			
-			if(event instanceof SlashCommandFrameworkEvent) {
-				((SlashCommandFrameworkEvent) event).loadArguments(command.getExpectedArguments());
+			if(event instanceof SlashCommandFrameworkEvent)
+			{
+				event=new SlashCommandFrameworkEvent(event.getFramework(),((SlashCommandFrameworkEvent) event).getEvent(),command.getExpectedArguments());
 			}else {
 				canExecute=hasExecutePrivileges(event.getMember(), command);
 			}
 			
-			canExecute &= command.allowExecute(commandContainer.event);
+			canExecute &= command.allowExecute(event);
 			
 			/* Check permission and allow all commands to Owners */
-			if (canExecute || PermissionUtils.checkOwner(commandContainer.event))
+			if (canExecute || event.getFramework().getOwners().contains(event.getAuthor().getId()))
 			{
 				try
 				{
-					command.action(commandContainer.event);
+					command.action(event);
 				}
 				catch (RuntimeException e)
 				{
@@ -80,15 +81,15 @@ final class CommandHandler
 				event.reply("You're not allowed to use this command!").queue();
 			}
 		}
-		else if (commandContainer.event.getFramework().isUnknownCommand())
+		else if (event.getFramework().isUnknownCommand())
 		{
-			Consumer<CommandEvent> unknownCommandConsumer = commandContainer.event.getFramework().getUnknownCommandConsumer();
+			Consumer<CommandEvent> unknownCommandConsumer = event.getFramework().getUnknownCommandConsumer();
 			if(unknownCommandConsumer == null)
 			{
 				final EmbedBuilder eb = new EmbedBuilder()
 						.setColor(Color.red)
 						.setTitle("Unknown command")
-						.setDescription("See `" + commandContainer.event.getFramework().getPrefix() + "help` for more information!");
+						.setDescription("See `" + event.getFramework().getPrefix() + "help` for more information!");
 					
 					event.reply(eb.build());
 			}
@@ -117,6 +118,9 @@ final class CommandHandler
 					return priv.isEnabled();
 				}
 				break;
+			default:
+				//ignore
+				break;
 			}
 		}
 		
@@ -131,7 +135,7 @@ final class CommandHandler
 			/* Prevent instantiation */
 		}
 
-		static CommandContainer parse(final MessageReceivedEvent event, final String prefix)
+		static CommandContainer parse(final CommandFramework framework, final MessageReceivedEvent event, final String prefix)
 		{
 			String raw = event.getMessage().getContentRaw();
 
@@ -168,7 +172,7 @@ final class CommandHandler
 				}
 			}
 
-			final CommandEvent commandEvent = new MessageCommandEvent(event, split.stream().map(str->new MessageArgument(event.getMessage(), str)).collect(Collectors.toList()));
+			final CommandEvent commandEvent = new MessageCommandEvent(framework, event, split.stream().map(str->new MessageArgument(event.getMessage(), str)).collect(Collectors.toList()));
 			return new CommandContainer(invoke, commandEvent);
 		}
 	}
@@ -187,15 +191,18 @@ final class CommandHandler
 		}
 	}
 
-	public static void handleButtonClick(ButtonClickEvent event) {
+	public static void handleButtonClick(CommandFramework framework, ButtonClickEvent event) {
 		String btnId=event.getButton().getId();
-		if(btnId!=null) {
+		if(btnId!=null)
+		{
 			String btnIdPrefix=CommandParser.SPACE_PATTERN.split(btnId)[0];
 			ICommand cmd = commands.get(btnIdPrefix);
 			if(cmd!=null) {
 				cmd.onButtonClick(event);
-			}else {
-				Consumer<ButtonClickEvent> unknownButtonConsumer = CommandFramework.getInstance().getUnknownButtonConsumer();
+			}
+			else
+			{
+				Consumer<ButtonClickEvent> unknownButtonConsumer = framework.getUnknownButtonConsumer();
 				if(unknownButtonConsumer==null) {
 					event.deferEdit().queue();
 				}else {
