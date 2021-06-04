@@ -129,7 +129,7 @@ public class CommandFramework
 	 * @param prefix the new prefix
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setPrefix(String prefix)
+	public final CommandFramework setPrefix(String prefix)
 	{
 		this.prefix.set(prefix);
 		return this;
@@ -141,7 +141,7 @@ public class CommandFramework
 	 * Only messages beginning with the given prefix are interpreted as commands.
 	 * @return the current prefix
 	 */
-	public String getPrefix()
+	public final String getPrefix()
 	{
 		return prefix.get();
 	}
@@ -153,7 +153,7 @@ public class CommandFramework
 	 * @param owners an array containing the IDs of all owners
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setOwners(String... owners)
+	public final CommandFramework setOwners(String... owners)
 	{
 		setOwners(Arrays.asList(owners));
 		return this;
@@ -165,7 +165,7 @@ public class CommandFramework
 	 * Owners can bypass permissions
 	 * @return a {@link Set} containing the IDs of all owners
 	 */
-	public Set<String> getOwners()
+	public final Set<String> getOwners()
 	{
 		return Collections.unmodifiableSet(owners);
 	}
@@ -177,7 +177,7 @@ public class CommandFramework
 	 * @param owners a {@link Collection} containing the IDs of all owners
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setOwners(Collection<String> owners)
+	public final CommandFramework setOwners(Collection<String> owners)
 	{
 		synchronized (this.owners)
 		{
@@ -192,7 +192,7 @@ public class CommandFramework
 	 * @param mentionPrefix <code>true</code> if a mention of the bot should be a valid prefix, else <code>false</code>
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setMentionPrefix(boolean mentionPrefix)
+	public final CommandFramework setMentionPrefix(boolean mentionPrefix)
 	{
 		this.mentionPrefix=mentionPrefix;
 		return this;
@@ -202,7 +202,7 @@ public class CommandFramework
 	 * Checks whether messages starting with a mention are interpreted as commands or not.
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public boolean isMentionPrefix()
+	public final boolean isMentionPrefix()
 	{
 		return mentionPrefix;
 	}
@@ -214,13 +214,13 @@ public class CommandFramework
 	 * @see CommandFramework#isUnknownCommand()
 	 * @see CommandFramework#setUnknownCommandAction(Consumer)
 	 */
-	public CommandFramework setUnknownCommand(boolean unknownCommand)
+	public final CommandFramework setUnknownCommand(boolean unknownCommand)
 	{
 		this.unknownCommand=unknownCommand;
 		return this;
 	}
 	
-	Consumer<CommandEvent> getUnknownCommandConsumer()
+	protected Consumer<CommandEvent> getUnknownCommandConsumer()
 	{
 		return unknownCommandConsumer.get();
 	}
@@ -231,7 +231,7 @@ public class CommandFramework
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 * @see CommandFramework#isUnknownCommand()
 	 */
-	public CommandFramework setUnknownCommandAction(Consumer<CommandEvent> unknownCommandConsumer)
+	public final CommandFramework setUnknownCommandAction(Consumer<CommandEvent> unknownCommandConsumer)
 	{
 		this.unknownCommandConsumer.set(unknownCommandConsumer);
 		return this.setUnknownCommand(true);
@@ -241,7 +241,7 @@ public class CommandFramework
 	 * Checks whether an action should be taken if an unknown command is executed.
 	 * @return <code>true</code> if an action should be taken if an unknown command is executed, else <code>false</code>
 	 */
-	public boolean isUnknownCommand()
+	public final boolean isUnknownCommand()
 	{
 		return unknownCommand;
 	}
@@ -253,7 +253,7 @@ public class CommandFramework
 	 * @param slashCommandsPerGuild <code>true</code> if slash commands should be set up per-guild
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setSlashCommandsPerGuild(boolean slashCommandsPerGuild)
+	public final CommandFramework setSlashCommandsPerGuild(boolean slashCommandsPerGuild)
 	{
 		this.slashCommandsPerGuild = slashCommandsPerGuild;
 		return this;
@@ -264,7 +264,7 @@ public class CommandFramework
 	 * @return <code>true</code> if slash commands should be set up per-guild
 	 * @see CommandFramework#setSlashCommandsPerGuild(boolean)
 	 */
-	public boolean isSlashCommandsPerGuild()
+	public final boolean isSlashCommandsPerGuild()
 	{
 		return slashCommandsPerGuild;
 	}
@@ -273,7 +273,7 @@ public class CommandFramework
 	 * Sets whether unknown slash commands should be removed on startup or not.
 	 * @param removeUnknownSlashCommands <code>true</code> if unknown slash commands should be removed on startup, else <code>false</code>
 	 */
-	public void setRemoveUnknownSlashCommands(boolean removeUnknownSlashCommands)
+	public final void setRemoveUnknownSlashCommands(boolean removeUnknownSlashCommands)
 	{
 		this.removeUnknownSlashCommands = removeUnknownSlashCommands;
 	}
@@ -282,7 +282,7 @@ public class CommandFramework
 	 * Checks whether unknown slash commands should be removed on startup or not.
 	 * @return <code>true</code> if unknown slash commands should be removed on startup, else <code>false</code>
 	 */
-	public boolean isRemoveUnknownSlashCommands()
+	public final boolean isRemoveUnknownSlashCommands()
 	{
 		return removeUnknownSlashCommands;
 	}
@@ -301,7 +301,7 @@ public class CommandFramework
 		return new CommandListener(this);
 	}
 	
-	Consumer<ButtonClickEvent> getUnknownButtonConsumer()
+	protected Consumer<ButtonClickEvent> getUnknownButtonConsumer()
 	{
 		return unknownButtonConsumer.get();
 	}
@@ -311,7 +311,7 @@ public class CommandFramework
 	 * @param unknownButtonConsumer the action triggered when an unknown button is pressed.
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setUnknownButtonAction(Consumer<ButtonClickEvent> unknownButtonConsumer)
+	public final CommandFramework setUnknownButtonAction(Consumer<ButtonClickEvent> unknownButtonConsumer)
 	{
 		this.unknownButtonConsumer.set(unknownButtonConsumer);
 		return this;
@@ -321,7 +321,7 @@ public class CommandFramework
 	 * Gets a {@link Map} with the aliases as keys and the command implementations as values.
 	 * @return a {@link Map} with all commands
 	 */
-	public Map<String, ICommand> getCommands()
+	public final Map<String, ICommand> getCommands()
 	{
 		return CommandHandler.getCommands();
 	}
