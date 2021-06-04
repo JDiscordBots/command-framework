@@ -15,7 +15,8 @@ import net.dv8tion.jda.api.entities.Guild;
  * 
  * Implementations of this interface must be immutable.
  */
-public interface Argument {
+public interface Argument
+{
 
 	/**
 	 * Gets the argument as a {@code boolean}.

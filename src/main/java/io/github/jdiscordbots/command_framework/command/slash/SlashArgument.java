@@ -13,11 +13,12 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 /**
  * An {@link Argument} representing an argument of a slash command
  */
-public final class SlashArgument implements Argument {
-	
+public final class SlashArgument implements Argument
+{
 	private final OptionMapping option;
 	
-	public SlashArgument(OptionMapping option) {
+	public SlashArgument(OptionMapping option)
+	{
 		this.option=option;
 	}
 	
@@ -25,7 +26,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean getAsBoolean() {
+	public boolean getAsBoolean()
+	{
 		
 		return option.getAsBoolean();
 	}
@@ -34,7 +36,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public OptionType getType() {
+	public OptionType getType()
+	{
 		return option.getType();
 	}
 
@@ -42,7 +45,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public long getAsLong() {
+	public long getAsLong()
+	{
 		return option.getAsLong();
 	}
 
@@ -50,7 +54,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Member getAsMember() {
+	public Member getAsMember()
+	{
 		return option.getAsMember();
 	}
 
@@ -58,7 +63,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public User getAsUser() {
+	public User getAsUser()
+	{
 		return option.getAsUser();
 	}
 
@@ -66,7 +72,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public GuildChannel getAsGuildChannel() {
+	public GuildChannel getAsGuildChannel()
+	{
 		return option.getAsGuildChannel();
 	}
 
@@ -74,7 +81,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public MessageChannel getAsMessageChannel() {
+	public MessageChannel getAsMessageChannel()
+	{
 		return option.getAsMessageChannel();
 	}
 
@@ -82,7 +90,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ChannelType getChannelType() {
+	public ChannelType getChannelType()
+	{
 		return option.getChannelType();
 	}
 
@@ -90,7 +99,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String getAsString() {
+	public String getAsString()
+	{
 		return option.getAsString();
 	}
 
@@ -98,7 +108,8 @@ public final class SlashArgument implements Argument {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Role getAsRole() {
+	public Role getAsRole()
+	{
 		return option.getAsRole();
 	}
 }

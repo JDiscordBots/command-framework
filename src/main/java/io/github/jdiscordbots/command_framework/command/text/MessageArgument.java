@@ -18,8 +18,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 /**
  * An {@link Argument} representing an argument of a text command
  */
-public final class MessageArgument implements Argument{
-	
+public final class MessageArgument implements Argument
+{
 	private static final Pattern USER_FORMAT=Pattern.compile("\\<@!?(\\d+)\\>");
 	private static final Pattern ROLE_FORMAT=Pattern.compile("\\<@&(\\d+)\\>");
 	private static final Pattern CHANNEL_FORMAT=Pattern.compile("\\<#(\\d+)\\>");
@@ -27,7 +27,8 @@ public final class MessageArgument implements Argument{
 	private final Message msg;
 	private final String text;
 	
-	public MessageArgument(Message msg, String text) {
+	public MessageArgument(Message msg, String text)
+	{
 		this.msg=msg;
 		this.text=text;
 	}
@@ -37,7 +38,8 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String getAsString() {
+	public String getAsString()
+	{
 		return text;
 	}
 
@@ -45,7 +47,8 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Role getAsRole() {
+	public Role getAsRole()
+	{
 		requireInGuild();
 		return getAsMentionedEntityOrThrowIfNotExist(ROLE_FORMAT, msg.getGuild()::getRoleById,()->new IllegalStateException("Argument cannot be converted to Role"));
 	}
@@ -54,7 +57,8 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean getAsBoolean() {
+	public boolean getAsBoolean()
+	{
 		return Boolean.parseBoolean(text);
 	}
 
@@ -62,7 +66,8 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public OptionType getType() {
+	public OptionType getType()
+	{
 		return OptionType.STRING;
 	}
 
@@ -70,7 +75,8 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public long getAsLong() {
+	public long getAsLong()
+	{
 		return Long.parseLong(text);
 	}
 
@@ -78,7 +84,8 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Member getAsMember() {
+	public Member getAsMember()
+	{
 		requireInGuild();
 		return getAsMentionedEntityOrThrowIfNotExist(USER_FORMAT, msg.getGuild()::getMemberById,()->new IllegalStateException("Argument cannot be converted to Member"));
 	}
@@ -87,7 +94,8 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public User getAsUser() {
+	public User getAsUser()
+	{
 		return getAsMentionedEntityOrThrowIfNotExist(USER_FORMAT, msg.getJDA()::getUserById,()->new IllegalStateException("Argument cannot be converted to User"));
 	}
 
@@ -95,7 +103,8 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public GuildChannel getAsGuildChannel() {
+	public GuildChannel getAsGuildChannel()
+	{
 		requireInGuild();
 		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getGuild()::getGuildChannelById,()->new IllegalStateException("Argument cannot be converted to guild channel"));
 	}
@@ -104,27 +113,34 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public MessageChannel getAsMessageChannel() {
+	public MessageChannel getAsMessageChannel()
+	{
 		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getJDA()::getTextChannelById,()->new IllegalStateException("Argument cannot be converted to message channel"));
 	}
 	
-	private void requireInGuild() {
-		if(!msg.isFromGuild()) {
+	private void requireInGuild()
+	{
+		if(!msg.isFromGuild())
+		{
 			throw new IllegalStateException("Cannot get member if user is not in guild");
 		}
 	}
 	
-	private <T,E extends Exception> T getAsMentionedEntityOrThrowIfNotExist(Pattern pattern,Function<String,T> converter,Supplier<E> toThrow) throws E{
+	private <T,E extends Exception> T getAsMentionedEntityOrThrowIfNotExist(Pattern pattern,Function<String,T> converter,Supplier<E> toThrow) throws E
+	{
 		T entity = getAsMentionedEntity(pattern,converter);
-		if(entity==null) {
+		if(entity==null)
+		{
 			throw toThrow.get();
 		}
 		return entity;
 	}
 	
-	private <T> T getAsMentionedEntity(Pattern pattern,Function<String,T> converter){
+	private <T> T getAsMentionedEntity(Pattern pattern,Function<String,T> converter)
+	{
 		Matcher matcher = pattern.matcher(text);
-		if(matcher.matches()) {
+		if(matcher.matches())
+		{
 			return converter.apply(matcher.group(1));
 		}
 		return converter.apply(text);
@@ -134,7 +150,8 @@ public final class MessageArgument implements Argument{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ChannelType getChannelType() {
+	public ChannelType getChannelType()
+	{
 		return msg.getChannelType();
 	}
 }

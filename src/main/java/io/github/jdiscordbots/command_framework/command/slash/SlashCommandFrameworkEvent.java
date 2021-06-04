@@ -33,45 +33,52 @@ import net.dv8tion.jda.internal.entities.SystemMessage;
 /**
  * A {@link CommandEvent} representing an executed slash command.
  */
-public final class SlashCommandFrameworkEvent implements CommandEvent {
-
+public final class SlashCommandFrameworkEvent implements CommandEvent
+{
 	private final CommandFramework framework;
 	private final SlashCommandEvent event;
 	private final List<Argument> args;
 	private AtomicReference<Message> firstMessage=new AtomicReference<>();
 
-	public SlashCommandFrameworkEvent(CommandFramework framework, SlashCommandEvent event) {
+	public SlashCommandFrameworkEvent(CommandFramework framework, SlashCommandEvent event)
+	{
 		this.framework=framework;
 		this.event = event;
 		args=null;
 	}
 	
-	public SlashCommandFrameworkEvent(CommandFramework framework, SlashCommandEvent event, Collection<ArgumentTemplate> expectedArgs) {
+	public SlashCommandFrameworkEvent(CommandFramework framework, SlashCommandEvent event, Collection<ArgumentTemplate> expectedArgs)
+	{
 		this.framework=framework;
 		this.event = event;
 		args = Collections.unmodifiableList(loadArgs(expectedArgs));
 	}
 	
-	private List<Argument> loadArgs(Collection<ArgumentTemplate> expectedArgs) {
+	private List<Argument> loadArgs(Collection<ArgumentTemplate> expectedArgs)
+	{
 		return Stream.concat(createSubcommandDataStream(), createActualArgumentsStream(expectedArgs))
 				.collect(Collectors.toList());
 	}
 	
-	private Stream<Argument> createSubcommandDataStream() {
+	private Stream<Argument> createSubcommandDataStream()
+	{
 		return Stream.of(event.getSubcommandGroup(), event.getSubcommandName())
 				.map(SlashCommandFrameworkEvent::createOptionDataFromString);
 	}
 	
-	private Stream<Argument> createActualArgumentsStream(Collection<ArgumentTemplate> expectedArgs){
+	private Stream<Argument> createActualArgumentsStream(Collection<ArgumentTemplate> expectedArgs)
+	{
 		return expectedArgs.stream().map(ArgumentTemplate::getName).map(event::getOption).filter(Objects::nonNull)
 				.map(SlashArgument::new);
 	}
 
-	private static Argument createOptionDataFromString(String in) {
+	private static Argument createOptionDataFromString(String in)
+	{
 		return new SlashArgument(new OptionMapping(new DataObject(creationOptionDataMap(in)) {}, null));
 	}
 	
-	private static Map<String, Object> creationOptionDataMap(String in){
+	private static Map<String, Object> creationOptionDataMap(String in)
+	{
 		Map<String, Object> ret=new HashMap<>();
 		ret.put("value", in);
 		ret.put("name", "subcommand");
@@ -82,7 +89,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public CommandFramework getFramework() {
+	public CommandFramework getFramework()
+	{
 		return framework;
 	}
 
@@ -90,7 +98,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<Argument> getArgs() {
+	public List<Argument> getArgs()
+	{
 		return args;
 	}
 
@@ -98,7 +107,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Guild getGuild() {
+	public Guild getGuild()
+	{
 		return event.getGuild();
 	}
 
@@ -106,7 +116,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public JDA getJDA() {
+	public JDA getJDA()
+	{
 		return event.getJDA();
 	}
 
@@ -114,7 +125,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public User getAuthor() {
+	public User getAuthor()
+	{
 		return event.getUser();
 	}
 
@@ -122,7 +134,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Member getMember() {
+	public Member getMember()
+	{
 		return event.getMember();
 	}
 	
@@ -130,7 +143,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public MessageChannel getChannel() {
+	public MessageChannel getChannel()
+	{
 		return event.getMessageChannel();
 	}
 
@@ -138,7 +152,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public SelfUser getSelfUser() {
+	public SelfUser getSelfUser()
+	{
 		return getJDA().getSelfUser();
 	}
 
@@ -146,7 +161,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Member getSelfMember() {
+	public Member getSelfMember()
+	{
 		return event.getGuild().getSelfMember();
 	}
 
@@ -154,7 +170,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String getId() {
+	public String getId()
+	{
 		return event.getInteraction().getId();
 	}
 
@@ -162,7 +179,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public PrivateChannel getPrivateChannel() {
+	public PrivateChannel getPrivateChannel()
+	{
 		return event.getPrivateChannel();
 	}
 
@@ -170,7 +188,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Message getMessage() {
+	public Message getMessage()
+	{
 		Message msg = firstMessage.get();
 		if (msg == null)
 		{
@@ -186,7 +205,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public long getIdLong() {
+	public long getIdLong()
+	{
 		return event.getInteraction().getIdLong();
 	}
 
@@ -194,7 +214,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Message> reply(String message) {
+	public RestAction<Message> reply(String message)
+	{
 		return event.getHook().sendMessage(message).map(this::saveMessageIfFirst);
 	}
 
@@ -202,7 +223,8 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Message> reply(Message message) {
+	public RestAction<Message> reply(Message message)
+	{
 		return event.getHook().sendMessage(message).map(this::saveMessageIfFirst);
 	}
 
@@ -210,11 +232,13 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Message> reply(MessageEmbed message) {
+	public RestAction<Message> reply(MessageEmbed message)
+	{
 		return event.getHook().sendMessageEmbeds(message).map(this::saveMessageIfFirst);
 	}
 	
-	private Message saveMessageIfFirst(Message msg) {
+	private Message saveMessageIfFirst(Message msg)
+	{
 		firstMessage.compareAndSet(null, msg);
 		return msg;
 	}
@@ -223,11 +247,13 @@ public final class SlashCommandFrameworkEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Void> deleteOriginalMessage() {
+	public RestAction<Void> deleteOriginalMessage()
+	{
 		return event.getHook().deleteOriginal();
 	}
 	
-	public SlashCommandEvent getEvent() {
+	public SlashCommandEvent getEvent()
+	{
 		return event;
 	}
 }

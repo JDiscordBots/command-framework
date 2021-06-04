@@ -15,10 +15,11 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 import java.util.function.Consumer;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 final class CommandHandler
 {
-	private static final Map<String, ICommand> commands = new HashMap<>();
+	private static final Map<String, ICommand> commands = new ConcurrentHashMap<>();
 	private static final Logger LOG=LoggerFactory.getLogger(CommandHandler.class);
 
 	private CommandHandler()
@@ -50,7 +51,9 @@ final class CommandHandler
 			if(event instanceof SlashCommandFrameworkEvent)
 			{
 				event=new SlashCommandFrameworkEvent(event.getFramework(),((SlashCommandFrameworkEvent) event).getEvent(),command.getExpectedArguments());
-			}else {
+			}
+			else
+			{
 				canExecute=hasExecutePrivileges(event.getMember(), command);
 			}
 			
@@ -93,21 +96,27 @@ final class CommandHandler
 		}
 	}
 
-	private static boolean hasExecutePrivileges(Member member,ICommand command) {
+	private static boolean hasExecutePrivileges(Member member,ICommand command)
+	{
 		Collection<CommandPrivilege> privileges = command.getPrivileges(member.getGuild());
 		boolean allowed=command.isAvailableToEveryone();
 		
-		for (CommandPrivilege priv : privileges) {
-			switch (priv.getType()) {
+		for (CommandPrivilege priv : privileges)
+		{
+			switch (priv.getType())
+			{
 			case ROLE:
-				for (Role role : member.getRoles()) {
-					if(role.getId().equals(role.getId())) {
+				for (Role role : member.getRoles())
+				{
+					if(role.getId().equals(priv.getId()))
+					{
 						allowed=priv.isEnabled();
 					}
 				}
 				break;
 			case USER:
-				if(member.getId().equals(priv.getId())) {
+				if(member.getId().equals(priv.getId()))
+				{
 					return priv.isEnabled();
 				}
 				break;
@@ -120,21 +129,26 @@ final class CommandHandler
 		return allowed;
 	}
 
-	public static void handleButtonClick(CommandFramework framework, ButtonClickEvent event) {
+	public static void handleButtonClick(CommandFramework framework, ButtonClickEvent event)
+	{
 		String btnId=event.getButton().getId();
 		if(btnId!=null)
 		{
 			String btnIdPrefix=CommandParser.SPACE_PATTERN.split(btnId)[0];
 			ICommand cmd = commands.get(btnIdPrefix);
-			if(cmd!=null) {
+			if(cmd!=null)
+			{
 				cmd.onButtonClick(event);
 			}
 			else
 			{
 				Consumer<ButtonClickEvent> unknownButtonConsumer = framework.getUnknownButtonConsumer();
-				if(unknownButtonConsumer==null) {
+				if(unknownButtonConsumer==null)
+				{
 					event.deferEdit().queue();
-				}else {
+				}
+				else
+				{
 					unknownButtonConsumer.accept(event);
 				}
 			}

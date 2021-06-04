@@ -15,13 +15,14 @@ import java.util.List;
 /**
  * A {@link CommandEvent} representing an executed text command.
  */
-public final class MessageCommandEvent implements CommandEvent {
-	
+public final class MessageCommandEvent implements CommandEvent
+{
 	private final CommandFramework framework;
 	private final MessageReceivedEvent event;
 	private final List<Argument> args;
 
-	public MessageCommandEvent(CommandFramework framework,MessageReceivedEvent event, List<Argument> args) {
+	public MessageCommandEvent(CommandFramework framework,MessageReceivedEvent event, List<Argument> args)
+	{
 		this.event = event;
 		this.args = Collections.unmodifiableList(new ArrayList<>(args));
 		this.framework=framework;
@@ -31,7 +32,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public CommandFramework getFramework() {
+	public CommandFramework getFramework()
+	{
 		return framework;
 	}
 
@@ -39,7 +41,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<Argument> getArgs() {
+	public List<Argument> getArgs()
+	{
 		return this.args;
 	}
 
@@ -47,7 +50,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Guild getGuild() {
+	public Guild getGuild()
+	{
 		return this.event.getGuild();
 	}
 
@@ -55,7 +59,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public JDA getJDA() {
+	public JDA getJDA()
+	{
 		return this.event.getJDA();
 	}
 
@@ -63,7 +68,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public User getAuthor() {
+	public User getAuthor()
+	{
 		return this.event.getAuthor();
 	}
 
@@ -71,7 +77,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Member getMember() {
+	public Member getMember()
+	{
 		return this.event.getMember();
 	}
 
@@ -79,7 +86,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Message getMessage() {
+	public Message getMessage()
+	{
 		return this.event.getMessage();
 	}
 
@@ -87,7 +95,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public MessageChannel getChannel() {
+	public MessageChannel getChannel()
+	{
 		return this.event.getChannel();
 	}
 
@@ -95,7 +104,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public SelfUser getSelfUser() {
+	public SelfUser getSelfUser()
+	{
 		return this.event.getJDA().getSelfUser();
 	}
 
@@ -103,7 +113,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Member getSelfMember() {
+	public Member getSelfMember()
+	{
 		return this.event.getGuild().getSelfMember();
 	}
 
@@ -111,7 +122,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Message> reply(String message) {
+	public RestAction<Message> reply(String message)
+	{
 		return event.getMessage().reply(message);
 	}
 
@@ -119,7 +131,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Message> reply(MessageEmbed message) {
+	public RestAction<Message> reply(MessageEmbed message)
+	{
 		return event.getMessage().reply(message);
 	}
 
@@ -127,7 +140,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Message> reply(Message message) {
+	public RestAction<Message> reply(Message message)
+	{
 		return event.getMessage().reply(message);
 	}
 
@@ -135,7 +149,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String getId() {
+	public String getId()
+	{
 		return event.getMessageId();
 	}
 
@@ -143,7 +158,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public long getIdLong() {
+	public long getIdLong()
+	{
 		return event.getMessageIdLong();
 	}
 
@@ -151,7 +167,8 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public PrivateChannel getPrivateChannel() {
+	public PrivateChannel getPrivateChannel()
+	{
 		return event.getMessage().getPrivateChannel();
 	}
 
@@ -159,11 +176,13 @@ public final class MessageCommandEvent implements CommandEvent {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Void> deleteOriginalMessage() {
+	public RestAction<Void> deleteOriginalMessage()
+	{
 		return event.getMessage().delete();
 	}
 
-	public MessageReceivedEvent getEvent() {
+	public MessageReceivedEvent getEvent()
+	{
 		return event;
 	}
 }

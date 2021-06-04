@@ -32,7 +32,8 @@ public interface ICommand
 	 * This method is executed on every button click where the button id equals the name of the command.
 	 * @param event A {@link ButtonClickEvent} representing the clicked button.
 	 */
-	default void onButtonClick(ButtonClickEvent event) {
+	default void onButtonClick(ButtonClickEvent event)
+	{
 		event.deferEdit().queue();
 	}
 
@@ -55,7 +56,8 @@ public interface ICommand
 	 * @see ICommand#isAvailableToEveryone()
 	 */
 	@Contract(pure = true)
-	default Collection<CommandPrivilege> getPrivileges(Guild guild){
+	default Collection<CommandPrivilege> getPrivileges(Guild guild)
+	{
 		return Collections.emptyList();
 	}
 	
@@ -65,7 +67,8 @@ public interface ICommand
 	 * @see ICommand#getPrivileges(Guild)
 	 */
 	@Contract(pure = true)
-	default boolean isAvailableToEveryone() {
+	default boolean isAvailableToEveryone()
+	{
 		return true;
 	}
 

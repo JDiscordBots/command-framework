@@ -15,7 +15,8 @@ import java.util.List;
  * 
  * Implementations of this interface must be thread safe.
  */
-public interface CommandEvent {
+public interface CommandEvent
+{
 
 	/**
 	 * Gets the {@link CommandFramework} instance managing {@link CommandEvent}.
@@ -126,7 +127,8 @@ public interface CommandEvent {
 	 * @param actionRows the action rows to send
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	default RestAction<Message> replyWithActionRows(String message, ActionRow... actionRows) {
+	default RestAction<Message> replyWithActionRows(String message, ActionRow... actionRows)
+	{
 		return replyWithActionRows(message,null,actionRows);
 	}
 	
@@ -136,7 +138,8 @@ public interface CommandEvent {
 	 * @param components the components the action row should consist of
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	default RestAction<Message> replyWithActionRow(String message, Component... components) {
+	default RestAction<Message> replyWithActionRow(String message, Component... components)
+	{
 		return replyWithActionRows(message,ActionRow.of(components));
 	}
 	
@@ -146,7 +149,8 @@ public interface CommandEvent {
 	 * @param actionRows the action rows to send
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	default RestAction<Message> replyWithActionRows(MessageEmbed message, ActionRow... actionRows) {
+	default RestAction<Message> replyWithActionRows(MessageEmbed message, ActionRow... actionRows)
+	{
 		return replyWithActionRows(null,message,actionRows);
 	}
 	
@@ -156,7 +160,8 @@ public interface CommandEvent {
 	 * @param components the components the action row should consist of
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	default RestAction<Message> replyWithActionRow(MessageEmbed message, Component... components) {
+	default RestAction<Message> replyWithActionRow(MessageEmbed message, Component... components)
+	{
 		return replyWithActionRows(null,message,ActionRow.of(components));
 	}
 	
@@ -167,7 +172,8 @@ public interface CommandEvent {
 	 * @param actionRows the action rows to send
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	default RestAction<Message> replyWithActionRows(String message,MessageEmbed embed,ActionRow... actionRows){
+	default RestAction<Message> replyWithActionRows(String message,MessageEmbed embed,ActionRow... actionRows)
+	{
 		return reply(new MessageBuilder(message)
 				.setEmbed(embed)
 				.setActionRows(actionRows)

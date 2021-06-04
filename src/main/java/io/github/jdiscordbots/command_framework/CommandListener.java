@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.github.jdiscordbots.command_framework.command.ArgumentTemplate;
+import io.github.jdiscordbots.command_framework.command.ICommand;
 import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFrameworkEvent;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,6 +20,7 @@ import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -38,16 +40,19 @@ final class CommandListener extends ListenerAdapter
 	}
 
 	@Override
-	public void onReady(ReadyEvent event) {
+	public void onReady(ReadyEvent event)
+	{
 		initializeSlashCommands(event.getJDA());
 	}
 	
-	private void initializeSlashCommands(JDA jda) {
+	private void initializeSlashCommands(JDA jda)
+	{
 		Collection<CommandData> slashCommands = getSlashCommands();
 		initializeSlashCommands(jda,slashCommands);
 	}
 	
-	private void initializeSlashCommands(JDA jda, Collection<CommandData> slashCommands) {
+	private void initializeSlashCommands(JDA jda, Collection<CommandData> slashCommands)
+	{
 		if (framework.isSlashCommandsPerGuild())
 		{
 			for (Guild guild : jda.getGuilds())
@@ -55,7 +60,8 @@ final class CommandListener extends ListenerAdapter
 				initializeSlashCommands(slashCommands, guild::updateCommands, guild::retrieveCommands)
 						.queue(cmds -> setupSlashCommandPermissions(guild, cmds));
 			}
-		} else
+		}
+		else
 		{
 			initializeSlashCommands(slashCommands, jda::updateCommands, jda::retrieveCommands).queue(cmds ->
 			{
@@ -85,13 +91,13 @@ final class CommandListener extends ListenerAdapter
 		CommandListUpdateAction commandsAction = commandUpdater.get().addCommands(slashCommands);
 		if(framework.isRemoveUnknownSlashCommands())
 		{
-			commandRetriever.get().queue(commands->commands.stream().filter(cmd->slashCommands.stream().noneMatch(sCmd->sCmd.getName().equals(cmd.getName()))).forEach(cmd->
-			{
-				cmd.delete().queue();
-			}));
+			commandRetriever.get()
+					.queue(commands -> commands.stream().filter(
+							cmd -> slashCommands.stream().noneMatch(sCmd -> sCmd.getName().equals(cmd.getName())))
+							.forEach(cmd -> cmd.delete().queue()));
 		}
 		
-		return commandsAction.map(commands->commands.stream().collect(Collectors.toMap(cmd->cmd.getName(),cmd->cmd.getId())));
+		return commandsAction.map(commands->commands.stream().collect(Collectors.toMap(Command::getName,Command::getId)));
 	}
 	
 	private Collection<CommandData> getSlashCommands()
@@ -99,53 +105,13 @@ final class CommandListener extends ListenerAdapter
 		Collection<CommandData> slashCommands = new ArrayList<>();
 		framework.getCommands().forEach((name,cmd) ->
 		{
-			
-			CommandData commandData=new CommandData(name, cmd.help());
-			SubcommandGroupData groupData=null;
-			SubcommandData subCommandData=null;
-			for (ArgumentTemplate arg : cmd.getExpectedArguments()) {
-				
-				switch(arg.getType()) {
-				case SUB_COMMAND:
-					subCommandData=new SubcommandData(arg.getName(), arg.getDescription());
-					if(groupData==null) {
-						commandData.addSubcommands(subCommandData);
-					}else {
-						groupData.addSubcommands(subCommandData);
-					}
-					break;
-				case SUB_COMMAND_GROUP:
-					groupData=new SubcommandGroupData(arg.getName(), arg.getDescription());
-					commandData.addSubcommandGroups(groupData);
-					break;
-				default:
-					OptionData option=new OptionData(arg.getType(), arg.getName(), arg.getDescription());
-					option.setRequired(arg.isRequired());
-					if(arg.hasChoices()) {
-						for (String choice : arg.getChoices()) {
-							if(arg.getType()==OptionType.INTEGER) {
-								option.addChoice(choice, Integer.parseInt(choice));
-							}else {
-								option.addChoice(choice, choice);
-							}
-						}
-					}
-					if(subCommandData==null)
-					{
-						commandData.addOptions(option);
-					}
-					else {
-						subCommandData.addOptions(option);
-					}
-				}
-			}
-			commandData.setDefaultEnabled(cmd.isAvailableToEveryone());
-			slashCommands.add(commandData);
+			slashCommands.add(SlashCommandBuilder.buildSlashCommand(name,cmd));
 		});
 		return slashCommands;
 	}
 	
-
+	
+	
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event)
 	{

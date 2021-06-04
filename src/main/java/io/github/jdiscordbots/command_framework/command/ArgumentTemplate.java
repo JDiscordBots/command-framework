@@ -8,27 +8,33 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 /**
  * Represents an expected parameter of a command
  */
-public final class ArgumentTemplate {
+public final class ArgumentTemplate
+{
 	private final OptionType type;
 	private final String name;
 	private final String description;
 	private final boolean required;
 	private final String[] choices;
 
-	private ArgumentTemplate(OptionType type, String name, String description, boolean required, String[] choices) {
+	private ArgumentTemplate(OptionType type, String name, String description, boolean required, String[] choices)
+	{
 		Objects.requireNonNull(type);
-		if(type==OptionType.UNKNOWN) {
+		if(type==OptionType.UNKNOWN)
+		{
 			throw new IllegalArgumentException("OptionType.UNKNOWN not supported");
 		}
 		Objects.requireNonNull(name);
-		if(name.isEmpty()) {
+		if(name.isEmpty())
+		{
 			throw new IllegalArgumentException("Argument name is empty");
 		}
 		Objects.requireNonNull(description);
-		if(description.isEmpty()) {
+		if(description.isEmpty())
+		{
 			throw new IllegalArgumentException("Argument description is empty");
 		}
-		if(choices!=null&&!type.canSupportChoices()) {
+		if(choices!=null&&!type.canSupportChoices())
+		{
 			throw new IllegalArgumentException("Tried to use choices on a type ("+type+") that does not support choices");
 		}
 		this.type = type;
@@ -47,7 +53,8 @@ public final class ArgumentTemplate {
 	 * @throws IllegalArgumentException if an argument is invalid
 	 * @throws NullPointerException if an argument that should not be <code>null</code> is <code>null</code>
 	 */
-	public ArgumentTemplate(OptionType type, String name, String description,boolean required) {
+	public ArgumentTemplate(OptionType type, String name, String description,boolean required)
+	{
 		this(type,name, description, required, null);
 	}
 	/**
@@ -60,7 +67,8 @@ public final class ArgumentTemplate {
 	 * @throws IllegalArgumentException if an argument is invalid
 	 * @throws NullPointerException if an argument that should not be <code>null</code> is <code>null</code>
 	 */
-	public ArgumentTemplate(String name, String description,boolean required,String... choices) {
+	public ArgumentTemplate(String name, String description,boolean required,String... choices)
+	{
 		this(OptionType.STRING,name, description, required,
 				choices==null||choices.length==0?null:
 					Arrays.copyOf(choices, choices.length));
@@ -73,7 +81,8 @@ public final class ArgumentTemplate {
 	 * @param required <code>true</code> if the argument is required, else <code>false</code>
 	 * @param choices the possible <code>int</code> choices for this argument
 	 */
-	public ArgumentTemplate(String name, String description,boolean required,int... choices) {
+	public ArgumentTemplate(String name, String description, boolean required, int... choices)
+	{
 		this(OptionType.INTEGER,name, description, required,
 				choices==null||choices.length==0?null:
 					Arrays.stream(choices).mapToObj(String::valueOf).toArray(String[]::new));
@@ -83,7 +92,8 @@ public final class ArgumentTemplate {
 	 * Gets the type of the parameter.
 	 * @return the {@link OptionType type} of the parameter
 	 */
-	public OptionType getType() {
+	public OptionType getType()
+	{
 		return type;
 	}
 
@@ -91,7 +101,8 @@ public final class ArgumentTemplate {
 	 * Gets the name of the parameter.
 	 * @return the name of the parameter
 	 */
-	public String getName() {
+	public String getName()
+	{
 		return name;
 	}
 
@@ -99,7 +110,8 @@ public final class ArgumentTemplate {
 	 * Gets the description of the parameter.
 	 * @return the description of the parameter
 	 */
-	public String getDescription() {
+	public String getDescription()
+	{
 		return description;
 	}
 
@@ -107,7 +119,8 @@ public final class ArgumentTemplate {
 	 * Tests if the parameter is required.
 	 * @return <code>true</code> if the parameter is required, else <code>false</code>
 	 */
-	public boolean isRequired() {
+	public boolean isRequired()
+	{
 		return required;
 	}
 	
@@ -115,7 +128,8 @@ public final class ArgumentTemplate {
 	 * Gets the choices for this argument.
 	 * @return the choices or <code>null</code> the argument is not a choice argument
 	 */
-	public String[] getChoices() {
+	public String[] getChoices()
+	{
 		return choices==null?null:Arrays.copyOf(choices, choices.length);
 	}
 	
@@ -123,7 +137,8 @@ public final class ArgumentTemplate {
 	 * Checks if the argument is a choice-argument
 	 * @return <code>true</code> if it is a choice-argument, else <code>false</code>
 	 */
-	public boolean hasChoices() {
+	public boolean hasChoices()
+	{
 		return choices!=null;
 	}
 }

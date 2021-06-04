@@ -51,7 +51,8 @@ public class CommandFramework
 	public CommandFramework()
 	{
 		this(getCallerPackageName());
-		if(getClass()==CommandFramework.class) {
+		if(getClass()==CommandFramework.class)
+		{
 			throw new IllegalStateException("This constructor may not be called by subclasses!");
 		}
 	}
@@ -164,7 +165,8 @@ public class CommandFramework
 	 * Owners can bypass permissions
 	 * @return a {@link Set} containing the IDs of all owners
 	 */
-	public Set<String> getOwners() {
+	public Set<String> getOwners()
+	{
 		return Collections.unmodifiableSet(owners);
 	}
 	
@@ -177,7 +179,8 @@ public class CommandFramework
 	 */
 	public CommandFramework setOwners(Collection<String> owners)
 	{
-		synchronized (this.owners) {
+		synchronized (this.owners)
+		{
 			this.owners.clear();
 			this.owners.addAll(owners);
 		}
@@ -199,7 +202,8 @@ public class CommandFramework
 	 * Checks whether messages starting with a mention are interpreted as commands or not.
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public boolean isMentionPrefix() {
+	public boolean isMentionPrefix()
+	{
 		return mentionPrefix;
 	}
 
@@ -216,7 +220,8 @@ public class CommandFramework
 		return this;
 	}
 	
-	Consumer<CommandEvent> getUnknownCommandConsumer() {
+	Consumer<CommandEvent> getUnknownCommandConsumer()
+	{
 		return unknownCommandConsumer.get();
 	}
 
@@ -226,7 +231,8 @@ public class CommandFramework
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 * @see CommandFramework#isUnknownCommand()
 	 */
-	public CommandFramework setUnknownCommandAction(Consumer<CommandEvent> unknownCommandConsumer) {
+	public CommandFramework setUnknownCommandAction(Consumer<CommandEvent> unknownCommandConsumer)
+	{
 		this.unknownCommandConsumer.set(unknownCommandConsumer);
 		return this.setUnknownCommand(true);
 	}
@@ -295,7 +301,8 @@ public class CommandFramework
 		return new CommandListener(this);
 	}
 	
-	Consumer<ButtonClickEvent> getUnknownButtonConsumer() {
+	Consumer<ButtonClickEvent> getUnknownButtonConsumer()
+	{
 		return unknownButtonConsumer.get();
 	}
 	
@@ -304,7 +311,8 @@ public class CommandFramework
 	 * @param unknownButtonConsumer the action triggered when an unknown button is pressed.
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setUnknownButtonAction(Consumer<ButtonClickEvent> unknownButtonConsumer) {
+	public CommandFramework setUnknownButtonAction(Consumer<ButtonClickEvent> unknownButtonConsumer)
+	{
 		this.unknownButtonConsumer.set(unknownButtonConsumer);
 		return this;
 	}
