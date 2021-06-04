@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.requests.RestAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +21,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 /**
  * Main class of the command framework.
  * 
@@ -332,27 +335,46 @@ public class CommandFramework
 		return handler.getCommands();
 	}
 	
+	/**
+	 * Adds a new command.
+	 * 
+	 * The returned {@link Consumer} should be called for every {@link JDA} object the command should be used with.
+	 * @param name The name of the command to create
+	 * @param cmd  the command itself
+	 * @return A {@link Consumer} that should be executed with any {@link JDA} object the command should be used with
+	 */
 	public final Consumer<JDA> addCommand(String name,ICommand cmd)
 	{
 		handler.addCommand(name,cmd);
 		CommandData cmdData = SlashCommandBuilder.buildSlashCommand(name, cmd);
 		
-		return jda->
-		{
-			jda.upsertCommand(cmdData).queue(actualCommand->
+		return jda->jda.upsertCommand(cmdData).queue(actualCommand->
 			{
 				for (Guild guild : jda.getGuilds())
 				{
 					guild.updateCommandPrivilegesById(actualCommand.getId(), cmd.getPrivileges(guild)).queue();
 				}
 			});
-		};
 	}
 
+	/**
+	 * Removes an existing command.
+	 * 
+	 * The returned {@link Consumer} should be called for every {@link JDA} object the command should be used with.
+	 * @param name the name of the command to remove
+	 * @return A {@link Consumer} that should be executed with any {@link JDA} object the command should be used with
+	 */
 	public final Consumer<JDA> removeCommand(String name)
 	{
 		handler.removeCommand(name);
-		return jda -> jda.retrieveCommands().queue(commands -> commands.stream()
+		return jda -> Stream.concat(
+				Stream.of(jda.retrieveCommands()),
+				jda.getGuilds().stream().map(Guild::retrieveCommands))
+				.forEach(cmds -> removeSlashCommand(jda, name, cmds));
+	}
+	
+	private void removeSlashCommand(JDA jda,String name,RestAction<List<net.dv8tion.jda.api.interactions.commands.Command>> commands) {
+		commands.queue(cmds -> cmds.stream()
 				.filter(cmd -> name.equals(cmd.getName()))
 				.forEach(cmd -> jda.deleteCommandById(cmd.getId()).queue()));
 	}
