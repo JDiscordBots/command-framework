@@ -8,6 +8,9 @@ import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.sharding.ShardManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,8 @@ public class CommandFramework
 	private volatile boolean unknownCommand = true;
 	private volatile boolean slashCommandsPerGuild=false;
 	private volatile boolean removeUnknownSlashCommands=true;
+	
+	private CommandHandler handler=new CommandHandler();
 	
 	/**
 	 * Creates an instance of the command framework.
@@ -88,7 +93,7 @@ public class CommandFramework
 		}
 	}
 
-	private static void addCommands(ScanResult scanResult)
+	private void addCommands(ScanResult scanResult)
 	{
 		addAction(scanResult, (cmdAsAnnotation, annotatedAsObject) ->
 		{
@@ -97,7 +102,7 @@ public class CommandFramework
 			
 			for (String alias : cmdAsBotCommand.value())
 			{
-				CommandHandler.addCommand(alias.toLowerCase(), cmd);
+				handler.addCommand(alias.toLowerCase(), cmd);
 			}
 		});
 	}
@@ -296,7 +301,7 @@ public class CommandFramework
 	public ListenerAdapter build()
 	{
 		if(LOG.isDebugEnabled())
-			LOG.debug("Listening to following commands ({}):\n{}", CommandHandler.getCommands().size(), String.join(", ", CommandHandler.getCommands().keySet()));
+			LOG.debug("Listening to following commands ({}):\n{}", handler.getCommands().size(), String.join(", ", handler.getCommands().keySet()));
 		
 		return new CommandListener(this);
 	}
@@ -323,8 +328,10 @@ public class CommandFramework
 	 */
 	public final Map<String, ICommand> getCommands()
 	{
-		return CommandHandler.getCommands();
+		return handler.getCommands();
 	}
 
-	
+	CommandHandler getCommandHandler() {
+		return handler;
+	}
 }

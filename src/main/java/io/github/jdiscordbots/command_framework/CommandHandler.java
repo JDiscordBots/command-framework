@@ -19,25 +19,25 @@ import java.util.concurrent.ConcurrentHashMap;
 
 final class CommandHandler
 {
-	private static final Map<String, ICommand> commands = new ConcurrentHashMap<>();
+	private final Map<String, ICommand> commands = new ConcurrentHashMap<>();
 	private static final Logger LOG=LoggerFactory.getLogger(CommandHandler.class);
 
-	private CommandHandler()
+	CommandHandler()
 	{
 		/* Prevent instantiation */
 	}
 
-	static Map<String, ICommand> getCommands()
+	Map<String, ICommand> getCommands()
 	{
 		return Collections.unmodifiableMap(commands);
 	}
 
-	static void addCommand(String name, ICommand command)
+	void addCommand(String name, ICommand command)
 	{
 		commands.put(name, command);
 	}
 
-	public static void handle(final CommandContainer commandContainer)
+	public void handle(final CommandContainer commandContainer)
 	{
 		CommandEvent event = commandContainer.event;
 		String cmdIdentifier=commandContainer.invoke.toLowerCase();
@@ -96,7 +96,7 @@ final class CommandHandler
 		}
 	}
 
-	private static boolean hasExecutePrivileges(Member member,ICommand command)
+	private boolean hasExecutePrivileges(Member member,ICommand command)
 	{
 		Collection<CommandPrivilege> privileges = command.getPrivileges(member.getGuild());
 		boolean allowed=command.isAvailableToEveryone();
@@ -129,7 +129,7 @@ final class CommandHandler
 		return allowed;
 	}
 
-	public static void handleButtonClick(CommandFramework framework, ButtonClickEvent event)
+	public void handleButtonClick(CommandFramework framework, ButtonClickEvent event)
 	{
 		String btnId=event.getButton().getId();
 		if(btnId!=null)

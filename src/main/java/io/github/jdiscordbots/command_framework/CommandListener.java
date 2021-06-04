@@ -27,10 +27,12 @@ import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 final class CommandListener extends ListenerAdapter
 {
 	private final CommandFramework framework;
+	private final CommandHandler handler;
 
 	public CommandListener(CommandFramework framework)
 	{
 		this.framework=framework;
+		this.handler=framework.getCommandHandler();
 	}
 
 	@Override
@@ -120,12 +122,12 @@ final class CommandListener extends ListenerAdapter
 
 		if (framework.isMentionPrefix() && containsMention)
 		{
-			CommandHandler.handle(CommandParser.parse(framework, event, CommandParser.SPACE_PATTERN.split(contentRaw)[0] + " "));
+			handler.handle(CommandParser.parse(framework, event, CommandParser.SPACE_PATTERN.split(contentRaw)[0] + " "));
 			return;
 		}
 
 		if (message.getContentDisplay().startsWith(framework.getPrefix()))
-			CommandHandler.handle(CommandParser.parse(framework, event, framework.getPrefix()));
+			handler.handle(CommandParser.parse(framework, event, framework.getPrefix()));
 	}
 	
 	@Override
@@ -133,12 +135,12 @@ final class CommandListener extends ListenerAdapter
 	{
 		event.deferReply().queue();
 		SlashCommandFrameworkEvent frameworkEvent = new SlashCommandFrameworkEvent(framework,event);
-		CommandHandler.handle(new CommandContainer(event.getName(), frameworkEvent));
+		handler.handle(new CommandContainer(event.getName(), frameworkEvent));
 	}
 	
 	@Override
 	public void onButtonClick(ButtonClickEvent event)
 	{
-		CommandHandler.handleButtonClick(framework,event);
+		handler.handleButtonClick(framework,event);
 	}
 }
