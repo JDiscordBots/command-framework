@@ -6,10 +6,11 @@ import io.github.classgraph.ScanResult;
 import io.github.jdiscordbots.command_framework.command.Command;
 import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.sharding.ShardManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -330,8 +331,34 @@ public class CommandFramework
 	{
 		return handler.getCommands();
 	}
+	
+	public final Consumer<JDA> addCommand(String name,ICommand cmd)
+	{
+		handler.addCommand(name,cmd);
+		CommandData cmdData = SlashCommandBuilder.buildSlashCommand(name, cmd);
+		
+		return jda->
+		{
+			jda.upsertCommand(cmdData).queue(actualCommand->
+			{
+				for (Guild guild : jda.getGuilds())
+				{
+					guild.updateCommandPrivilegesById(actualCommand.getId(), cmd.getPrivileges(guild)).queue();
+				}
+			});
+		};
+	}
 
-	CommandHandler getCommandHandler() {
+	public final Consumer<JDA> removeCommand(String name)
+	{
+		handler.removeCommand(name);
+		return jda -> jda.retrieveCommands().queue(commands -> commands.stream()
+				.filter(cmd -> name.equals(cmd.getName()))
+				.forEach(cmd -> jda.deleteCommandById(cmd.getId()).queue()));
+	}
+	
+	CommandHandler getCommandHandler()
+	{
 		return handler;
 	}
 }

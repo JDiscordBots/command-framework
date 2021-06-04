@@ -36,6 +36,11 @@ final class CommandHandler
 	{
 		commands.put(name, command);
 	}
+	
+	void removeCommand(String name)
+	{
+		commands.remove(name);
+	}
 
 	public void handle(final CommandContainer commandContainer)
 	{
