@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
 /**
  * Main class of the command framework.
  * 
@@ -373,7 +374,8 @@ public class CommandFramework
 				.forEach(cmds -> removeSlashCommand(jda, name, cmds));
 	}
 	
-	private void removeSlashCommand(JDA jda,String name,RestAction<List<net.dv8tion.jda.api.interactions.commands.Command>> commands) {
+	private void removeSlashCommand(JDA jda,String name,RestAction<List<net.dv8tion.jda.api.interactions.commands.Command>> commands)
+	{
 		commands.queue(cmds -> cmds.stream()
 				.filter(cmd -> name.equals(cmd.getName()))
 				.forEach(cmd -> jda.deleteCommandById(cmd.getId()).queue()));
