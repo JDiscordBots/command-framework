@@ -1,5 +1,7 @@
 # Command Framework
 
+A command system for JDA that allows to treat slash and text commands the same
+
 ## Usage
 
 1. Add Command-Framework to the dependencies section of your `pom.xml` (replace VERSION with [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.jdiscordbots/command-framework/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.jdiscordbots/command-framework)):
@@ -81,3 +83,6 @@ public class PermissionExample implements ICommand {
     }
 }
 ```
+
+### Docs
+You can take a look at the JavaDoc at [javadoc.io](https://javadoc.io/doc/io.github.jdiscordbots/command-framework/latest/index.html).
