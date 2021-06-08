@@ -2,161 +2,188 @@ package io.github.jdiscordbots.command_framework.command;
 
 import io.github.jdiscordbots.command_framework.CommandFramework;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Component;
+import net.dv8tion.jda.api.requests.RestAction;
 
 import java.util.List;
 
 /**
- * CommandEvent
+ * Represents a command that is executed and allows to take actions in response.
+ * 
+ * Implementations of this interface must be thread safe.
  */
-public class CommandEvent {
-	private final CommandFramework framework;
-	private final GuildMessageReceivedEvent event;
-	private final List<String> args;
+public interface CommandEvent
+{
 
 	/**
-	 * Construct a new CommandEvent
-	 *
-	 * @param framework {@link CommandFramework CommandFramework}
-	 * @param event incomming {@link GuildMessageReceivedEvent GuildMessageReceivedEvent}
-	 * @param args  Command arguments
+	 * Gets the {@link CommandFramework} instance managing {@link CommandEvent}.
+	 * @return the {@link CommandFramework}
 	 */
-	public CommandEvent(CommandFramework framework, GuildMessageReceivedEvent event, List<String> args) {
-		this.framework = framework;
-		this.event = event;
-		this.args = args;
-	}
+	CommandFramework getFramework();
 
 	/**
-	 * Get CommandFramework instance
-	 *
-	 * @return {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance
+	 * Gets a {@link List} containing all {@link Argument}s supplied to this command.
+	 * The order of arguments is preserved.
+	 * @return a {@link List} with all {@link Argument}s the command is invoked with
 	 */
-	public CommandFramework getFramework() {
-		return this.framework;
-	}
+	List<Argument> getArgs();
+	
+	/**
+	 * Gets the {@link Guild} the command is invoked in.
+	 * @return the {@link Guild} the command is invoked in
+	 */
+	Guild getGuild();
 
 	/**
-	 * Get corresponding message event
-	 *
-	 * @return incoming {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
+	 * Gets the {@link JDA}-object used for receiving the command.
+	 * @return the {@link JDA} object used for receiving the command
 	 */
-	public GuildMessageReceivedEvent getEvent() {
-		return this.event;
-	}
+	JDA getJDA();
 
 	/**
-	 * Get command arguments as {@link java.util.List<String> List}
-	 *
-	 * @return command arguments
+	 * Gets the {@link User} object representing the user invoking the command.
+	 * @return the {@link User} invoking the command
 	 */
-	public List<String> getArgs() {
-		return this.args;
-	}
+	User getAuthor();
 
 	/**
-	 * Get corresponding guild of event
-	 *
-	 * @return {@link net.dv8tion.jda.api.entities.Guild Guild} of event
+	 * Gets the {@link Member} object representing the member invoking the command.
+	 * @return the {@link Member} invoking the command
 	 */
-	public Guild getGuild() {
-		return this.event.getGuild();
-	}
+	Member getMember();
 
 	/**
-	 * Get corresponding API of event
-	 *
-	 * @return {@link net.dv8tion.jda.api.JDA JDA} instance of event
+	 * Gets the {@link MessageChannel} in which the command was invoked.
+	 * @return the {@link MessageChannel} where the command was invoked
 	 */
-	public JDA getJDA() {
-		return this.event.getJDA();
-	}
-
+	MessageChannel getChannel();
+	
 	/**
-	 * Get corresponding user of event
-	 *
-	 * @return {@link net.dv8tion.jda.api.entities.User User} of event
+	 * Gets the currently logged in {@link User}.
+	 * @return the {@link SelfUser}-object representing the current user
 	 */
-	public User getAuthor() {
-		return this.event.getAuthor();
-	}
+	SelfUser getSelfUser();
 
+	
 	/**
-	 * Get corresponding member of event
-	 *
-	 * @return {@link net.dv8tion.jda.api.entities.Member Member} if event
+	 * Gets the currently logged in {@link User} as {@link Member}.
+	 * @return the {@link Member}-object representing the current user in the {@link Guild} the command was invoked
 	 */
-	public Member getMember() {
-		return this.event.getMember();
-	}
-
+	Member getSelfMember();
+	
 	/**
-	 * Get corresponding message of event
-	 *
-	 * @return {@link net.dv8tion.jda.api.entities.Message Message} of event
+	 * Gets the id of the invocation of the command represented as a {@link String}.
+	 * @return the {@link String} id of the invocation of the command
 	 */
-	public Message getMessage() {
-		return this.event.getMessage();
-	}
-
+	String getId();
+	
 	/**
-	 * Get corresponding channel of event
-	 *
-	 * @return {@link net.dv8tion.jda.api.entities.TextChannel TextChannel} of event
+	 * Gets the id of the invocation of the command represented as a <code>long</code>.
+	 * @return the <code>long</code> id of the invocation of the command
 	 */
-	public TextChannel getChannel() {
-		return this.event.getChannel();
-	}
-
+	long getIdLong();
+	
 	/**
-	 * Get corresponding self user of JDA instance
-	 *
-	 * @return {@link net.dv8tion.jda.api.entities.SelfUser SelfUser} of JDA
+	 * Gets the {@link PrivateChannel} object is the command was invoked in a private channel.
+	 * @return the {@link PrivateChannel} object
+	 * @throws IllegalStateException if the command was not sent in a {@link PrivateChannel}
 	 */
-	public User getSelfUser() {
-		return this.event.getJDA().getSelfUser();
-	}
-
+	PrivateChannel getPrivateChannel();
+	
 	/**
-	 * Get corresponding self member of guild of event
-	 *
-	 * @return {@link net.dv8tion.jda.api.entities.Member Member} of event
+	 * Gets the {@link Message} associated with the invoked command.
+	 * This message may not be sent the moment the command has been invoked
+	 * @return the {@link Message} associated with the invoked command
 	 */
-	public Member getSelfMember() {
-		return this.event.getGuild().getSelfMember();
-	}
-
+	Message getMessage();
+	
 	/**
-	 * Reply on Event
-	 * <p>
-	 * Shortcut for <code>event.getChannel().sendMessage(CharSequence).queue()</code>
-	 *
-	 * @param text Text to send
+	 * Sends a message in response to the invoked command.
+	 * @param message the message to send as {@link String}
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	public void reply(CharSequence text) {
-		this.getChannel().sendMessage(text).queue();
-	}
-
+	RestAction<Message> reply(String message);
+	
 	/**
-	 * Reply on Event
-	 * <p>
-	 * Shortcut for <code>event.getChannel().sendMessage(Message).queue()</code>
-	 *
-	 * @param msg Message to send
+	 * Sends a message in response to the invoked command.
+	 * @param message the message to send as {@link MessageEmbed}
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	public void reply(Message msg) {
-		this.getChannel().sendMessage(msg).queue();
-	}
-
+	RestAction<Message> reply(MessageEmbed message);
+	
 	/**
-	 * Reply on Event
-	 * <p>
-	 * Shortcut for <code>event.getChannel().sendMessage(MessageEmbed).queue()</code>
-	 *
-	 * @param embed MessageEmbed to send
+	 * Sends a message in response to the invoked command.
+	 * @param message the message to send as {@link Message}
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	public void reply(MessageEmbed embed) {
-		this.getChannel().sendMessage(embed).queue();
+	RestAction<Message> reply(Message message);
+	
+	/**
+	 * Sends a message with action rows in response to the invoked command.
+	 * @param message the message to send as {@link String}
+	 * @param actionRows the action rows to send
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	default RestAction<Message> replyWithActionRows(String message, ActionRow... actionRows)
+	{
+		return replyWithActionRows(message,null,actionRows);
 	}
+	
+	/**
+	 * Sends a message with components in an action row in response to the invoked command.
+	 * @param message the message to send as {@link String}
+	 * @param components the components the action row should consist of
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	default RestAction<Message> replyWithActionRow(String message, Component... components)
+	{
+		return replyWithActionRows(message,ActionRow.of(components));
+	}
+	
+	/**
+	 * Sends a message with action rows in response to the invoked command.
+	 * @param message the message to send as {@link MessageEmbed}
+	 * @param actionRows the action rows to send
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	default RestAction<Message> replyWithActionRows(MessageEmbed message, ActionRow... actionRows)
+	{
+		return replyWithActionRows(null,message,actionRows);
+	}
+	
+	/**
+	 * Sends a message with components in an action row in response to the invoked command.
+	 * @param message the message to send as {@link MessageEmbed}
+	 * @param components the components the action row should consist of
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	default RestAction<Message> replyWithActionRow(MessageEmbed message, Component... components)
+	{
+		return replyWithActionRows(null,message,ActionRow.of(components));
+	}
+	
+	/**
+	 * Sends a message with components in an action row in response to the invoked command.
+	 * @param message the message to send as {@link MessageEmbed}
+	 * @param embed the message to send as {@link MessageEmbed}
+	 * @param actionRows the action rows to send
+	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
+	 */
+	default RestAction<Message> replyWithActionRows(String message,MessageEmbed embed,ActionRow... actionRows)
+	{
+		return reply(new MessageBuilder(message)
+				.setEmbed(embed)
+				.setActionRows(actionRows)
+				.build());
+	}
+	
+	/**
+	 * deletes the message associated with the command
+	 * @return a {@link RestAction} that finishes once the message is deleted
+	 */
+	RestAction<Void> deleteOriginalMessage();
+	
 }

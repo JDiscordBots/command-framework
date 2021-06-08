@@ -1,36 +1,74 @@
 package io.github.jdiscordbots.command_framework;
 
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ScanResult;
 import io.github.jdiscordbots.command_framework.command.Command;
+import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.reflections.Reflections;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.requests.RestAction;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
- * Nightdream's easy-to-use command system as a library
+ * Main class of the command framework.
+ * 
+ * See the README file of the project for details.
+ * This class is thread safe.
+ * 
+ * @see CommandFramework#build()
  */
-public class CommandFramework {
-	private static final Logger LOG = LoggerFactory.getLogger(CommandFramework.class);
-
-	private Consumer<TextChannel> onUnknownCommandHandler;
-	private String prefix = "!";
-	private String[] owners = {};
-	private boolean mentionPrefix = true;
-	private boolean unknownCommand = true;
+public class CommandFramework
+{
+	private static final Logger LOG=LoggerFactory.getLogger(CommandFramework.class);
+	
+	private AtomicReference<Consumer<CommandEvent>> unknownCommandConsumer = new AtomicReference<>();
+	private AtomicReference<Consumer<ButtonClickEvent>> unknownButtonConsumer = new AtomicReference<>();
+	private AtomicReference<String> prefix = new AtomicReference<>("!");
+	private final Set<String> owners = Collections.newSetFromMap(new ConcurrentHashMap<>());
+	private volatile boolean mentionPrefix = true;
+	private volatile boolean unknownCommand = true;
+	private volatile boolean slashCommandsPerGuild=false;
+	private volatile boolean removeUnknownSlashCommands=true;
+	
+	private CommandHandler handler=new CommandHandler();
+	
+	/**
+	 * Constructs a new CommandFramework instance with the caller-package
+	 *
+	 * Only classes in the same package (and subpackages) than the calling class will be scanned for commands.
+	 * @implSpec This constructor should not be used by subclasses. Instead, subclasses should use {@code super(getCallerPackageName())}
+	 * @see io.github.jdiscordbots.command_framework.CommandFramework#CommandFramework(String)
+	 */
+	public CommandFramework()
+	{
+		this(getCallerPackageName());
+		if(getClass()!=CommandFramework.class)
+		{
+			throw new IllegalStateException("This constructor may not be called by subclasses!");
+		}
+	}
 
 	/**
 	 * Constructs a new CommandFramework instance with the given Commands package
@@ -38,58 +76,53 @@ public class CommandFramework {
 	 * @param commandsPackagePath path to package where commands are located, e.g. <code>com.example.bot.commands</code>
 	 * @see CommandFramework#CommandFramework()
 	 */
-	public CommandFramework(String commandsPackagePath) {
-		final Reflections reflections = new Reflections(commandsPackagePath);
-
-		addCommands(reflections);
+	public CommandFramework(Map<String, ICommand> commands)
+	{
+		commands.forEach((alias,cmd)->handler.addCommand(alias.toLowerCase(), cmd));
 	}
 
 	/**
-	 * Constructs a new CommandFramework instance with the caller-package
-	 *
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#CommandFramework(String)
+	 * Gets the package name of the class of the calling method
+	 * @return the package name of the class of the calling method
 	 */
-	public CommandFramework() {
-		this(getCallerPackageName());
-	}
-
-	/**
-	 * Create a CommandFramework and add commands manually
-	 *
-	 * @param commands {@link Map Map} of Name and Command
-	 */
-	public CommandFramework(Map<String, ICommand> commands) {
-		commands.forEach(CommandHandler::addCommand);
-	}
-
-	/**
-	 * Return package path of caller-class
-	 *
-	 * @return package path
-	 */
-	private static String getCallerPackageName() {
-		try {
+	protected static final String getCallerPackageName()
+	{
+		try
+		{
 			StackTraceElement trace = new Throwable().getStackTrace()[2];
 			String clName = trace.getClassName();
 			return Thread.currentThread().getContextClassLoader().loadClass(clName).getPackage().getName();
-		} catch (ClassNotFoundException ignored) {
+		}
+		catch (ClassNotFoundException ignored)
+		{
 			throw new IllegalStateException("caller class not available");
 		}
 	}
-
+	
 	/**
-	 * Add Commands using Reflections
-	 *
-	 * @param reflections {@link org.reflections.Reflections Reflections}
+	 * Creates an instance of the command framework.
+	 * Only classes in the passed package (and subpackages) will be scanned for commands.
+	 * @param commandsRootPackage the root package to scan
 	 */
-	private static void addCommands(Reflections reflections) {
-		addAction(reflections, (cmdAsAnnotation, annotatedAsObject) ->
+	public CommandFramework(String commandsRootPackage)
+	{
+		try (ScanResult scanResult = new ClassGraph().acceptPackages(commandsRootPackage).enableAnnotationInfo().scan())
+		{
+			addCommands(scanResult);
+		}
+	}
+
+	private void addCommands(ScanResult scanResult)
+	{
+		addAction(scanResult, (cmdAsAnnotation, annotatedAsObject) ->
 		{
 			final Command cmdAsBotCommand = (Command) cmdAsAnnotation;
 			final ICommand cmd = (ICommand) annotatedAsObject;
-
+			
 			for (String alias : cmdAsBotCommand.value())
-				CommandHandler.addCommand(alias.toLowerCase(), cmd);
+			{
+				handler.addCommand(alias.toLowerCase(), cmd);
+			}
 		});
 	}
 
@@ -99,144 +132,225 @@ public class CommandFramework {
 	 * @param reflections {@link org.reflections.Reflections Reflections}
 	 * @param function    {@link java.util.function.BiConsumer BiConsumer}
 	 */
-	private static void addAction(Reflections reflections, BiConsumer<Annotation, Object> function) {
-		for (Class<?> cl : reflections.getTypesAnnotatedWith(Command.class, true)) {
-			try {
+	private static void addAction(ScanResult scanResult, BiConsumer<Annotation, Object> function)
+	{
+		for (ClassInfo cInfo : scanResult.getClassesWithAnnotation(Command.class.getCanonicalName()))
+		{
+			try
+			{
+				final Class<?> cl=cInfo.loadClass();
 				final Object annotatedAsObject = cl.getDeclaredConstructor().newInstance();
 				final Annotation cmdAsAnnotation = cl.getAnnotation((Class<? extends Annotation>) Command.class);
 
 				function.accept(cmdAsAnnotation, annotatedAsObject);
-			} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-				if (LOG.isErrorEnabled())
-					LOG.error("An exception occurred trying to create and register an instance of the class {}.",
-						cl.getCanonicalName(), e);
+			}
+			catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e)
+			{
+				if(LOG.isErrorEnabled())
+					LOG.error("An exception occurred trying to create and register an instance of the class {}.", cInfo.getName(), e);
 			}
 		}
 	}
-
 	/**
-	 * Set privileged user ids
-	 *
-	 * @param owner  owner id
-	 * @param owners more owner ids
-	 * @return updated {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} for chaining convenience
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#getOwners()
+	 * Sets the prefix for commands to listen on.
+	 * 
+	 * Only messages beginning with the given prefix are interpreted as commands.
+	 * @param prefix the new prefix
+	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setOwners(String owner, String... owners) {
-		final List<String> ownersList = new ArrayList<>(Arrays.asList(owners));
-
-		ownersList.add(owner);
-
-		this.owners = ownersList.toArray(new String[0]);
+	public final CommandFramework setPrefix(String prefix)
+	{
+		this.prefix.set(prefix);
 		return this;
 	}
-
+	
 	/**
-	 * Return whether the unknown command message is enabled or not
-	 *
-	 * @return <code>true</code> if unknown command message is enabled, otherwise <code>false</code>
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#setUnknownCommand(boolean)
-	 */
-	public boolean isUnknownCommand() {
-		return unknownCommand;
-	}
-
-	/**
-	 * Enable/disable unknown command message
-	 *
-	 * @param unknownCommand state of unknown command message
-	 * @return updated {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} for chaining convenience
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#isUnknownCommand()
-	 */
-	public CommandFramework setUnknownCommand(boolean unknownCommand) {
-		this.unknownCommand = unknownCommand;
-		return this;
-	}
-
-	/**
-	 * Get the prefix
-	 *
+	 * Gets the current prefix for commands to listen on.
+	 * 
+	 * Only messages beginning with the given prefix are interpreted as commands.
 	 * @return prefix of current {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance
 	 * @see io.github.jdiscordbots.command_framework.CommandFramework#setPrefix(String)
 	 */
-	public String getPrefix() {
-		return prefix;
+	public final String getPrefix()
+	{
+		return prefix.get();
 	}
-
+	
 	/**
-	 * Set the prefix
-	 *
-	 * @param prefix prefix for {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance
-	 * @return updated {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} for chaining convenience
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#getPrefix()
+	 * Sets the owners of the bot.
+	 * 
+	 * Owners can bypass permissions
+	 * @param owners an array containing the IDs of all owners
+	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setPrefix(String prefix) {
-		this.prefix = prefix;
+	public final CommandFramework setOwners(String... owners)
+	{
+		setOwners(Arrays.asList(owners));
 		return this;
 	}
-
+	
 	/**
-	 * Get all owners of the current {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance
-	 *
-	 * @return owner ids
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#setOwners(String[])
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#setOwners(String, String...)
+	 * Gets the owners of the bot.
+	 * 
+	 * Owners can bypass permissions
+	 * @return a {@link Set} containing the IDs of all owners
 	 */
-	public String[] getOwners() {
-		return owners;
+	public final Set<String> getOwners()
+	{
+		return Collections.unmodifiableSet(owners);
 	}
-
+	
 	/**
-	 * Set owners of {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance
-	 *
-	 * @param owners owners
-	 * @return updated {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} for chaining convenience
+	 * Sets the owners of the bot.
+	 * 
+	 * Owners can bypass permissions.
+	 * @param owners a {@link Collection} containing the IDs of all owners
+	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public CommandFramework setOwners(String[] owners) {
-		return this.setOwners(owners[0], Arrays.copyOfRange(owners, 1, owners.length));
-	}
-
-	/**
-	 * Get unknown command message handler
-	 *
-	 * @return {@link java.util.function.Consumer<TextChannel> Consumer}
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#onUnknownCommand(Consumer)
-	 */
-	Consumer<TextChannel> getOnUnknownCommandHandler() {
-		return onUnknownCommandHandler;
-	}
-
-	/**
-	 * Set unknown command message handler
-	 *
-	 * @param onUnknownCommandHandler {@link java.util.function.Consumer<TextChannel> Consumer}
-	 * @return updated {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} for chaining convenience
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#getOnUnknownCommandHandler()
-	 */
-	public CommandFramework onUnknownCommand(Consumer<TextChannel> onUnknownCommandHandler) {
-		this.onUnknownCommandHandler = onUnknownCommandHandler;
-		return this.setUnknownCommand(true);
-	}
-
-	/**
-	 * Return whether mention prefix is enabled or not
-	 *
-	 * @return <code>true</code> if mention prefix is enabled, otherwise <code>false</code>
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#setMentionPrefix(boolean)
-	 */
-	public boolean isMentionPrefix() {
-		return mentionPrefix;
+	public final CommandFramework setOwners(Collection<String> owners)
+	{
+		synchronized (this.owners)
+		{
+			this.owners.clear();
+			this.owners.addAll(owners);
+		}
+		return this;
 	}
 
 	/**
 	 * Set whether the system should respond to mentions or not
 	 *
-	 * @param mentionPrefix state of mention prefix
+	 * @param mentionPrefix <code>true</code> if a mention of the bot should be a valid prefix, else <code>false</code>
 	 * @return updated {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} for chaining convenience
 	 * @see io.github.jdiscordbots.command_framework.CommandFramework#isMentionPrefix()
 	 */
-	public CommandFramework setMentionPrefix(boolean mentionPrefix) {
-		this.mentionPrefix = mentionPrefix;
+	public final CommandFramework setMentionPrefix(boolean mentionPrefix)
+	{
+		this.mentionPrefix=mentionPrefix;
+		return this;
+	}
+	
+	/**
+	 * Checks whether messages starting with a mention are interpreted as commands or not.
+	 *
+	 * @return <code>true</code> if mention prefix is enabled, otherwise <code>false</code>
+	 * @see io.github.jdiscordbots.command_framework.CommandFramework#setMentionPrefix(boolean)
+	 */
+	public final boolean isMentionPrefix()
+	{
+		return mentionPrefix;
+	}
+
+	/** 
+	 * Sets whether an action should be taken if an unknown command is executed.
+	 * @param unknownCommand <code>true</code> if an action should be taken if an unknown command is executed, else <code>false</code>
+	 * @return updated {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} for chaining convenience
+	 * @see CommandFramework#isUnknownCommand()
+	 * @see CommandFramework#setUnknownCommandAction(Consumer)
+	 */
+	public final CommandFramework setUnknownCommand(boolean unknownCommand)
+	{
+		this.unknownCommand=unknownCommand;
+		return this;
+	}
+	
+	protected Consumer<CommandEvent> getUnknownCommandConsumer()
+	{
+		return unknownCommandConsumer.get();
+	}
+
+	
+
+	/**
+	 * Sets the action that occurs when an unkwown command is entered.
+	 * @param unknownCommandConsumer the action triggered on unknown commands
+	 * @return updated {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} for chaining convenience
+	 * @see CommandFramework#isUnknownCommand()
+	 * @see CommandFramework#setUnknownCommand(boolean)
+	 */
+	public final CommandFramework setUnknownCommandAction(Consumer<CommandEvent> unknownCommandConsumer)
+	{
+		this.unknownCommandConsumer.set(unknownCommandConsumer);
+		return this.setUnknownCommand(true);
+	}
+
+	/**
+	 * Checks whether an action should be taken if an unknown command is executed.
+	 * @return <code>true</code> if an action should be taken if an unknown command is executed, else <code>false</code>
+	 */
+	public final boolean isUnknownCommand()
+	{
+		return unknownCommand;
+	}
+	
+	/**
+	 * Sets whether slash commands should be enabled globally or on a per-guild basis.
+	 * 
+	 * <a href="https://discord.com/developers/docs/interactions/slash-commands#registering-a-command">Per-Guild commands are updated instantly while updating of global slash commands may take an hour to update.</a>
+	 * @param slashCommandsPerGuild <code>true</code> if slash commands should be set up per-guild
+	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
+	 */
+	public final CommandFramework setSlashCommandsPerGuild(boolean slashCommandsPerGuild)
+	{
+		this.slashCommandsPerGuild = slashCommandsPerGuild;
+		return this;
+	}
+	
+	/**
+	 * Checks whether slash commands should be enabled globally or on a per-guild basis.
+	 * @return <code>true</code> if slash commands should be set up per-guild
+	 * @see CommandFramework#setSlashCommandsPerGuild(boolean)
+	 */
+	public final boolean isSlashCommandsPerGuild()
+	{
+		return slashCommandsPerGuild;
+	}
+	
+	/**
+	 * Sets whether unknown slash commands should be removed on startup or not.
+	 * @param removeUnknownSlashCommands <code>true</code> if unknown slash commands should be removed on startup, else <code>false</code>
+	 */
+	public final void setRemoveUnknownSlashCommands(boolean removeUnknownSlashCommands)
+	{
+		this.removeUnknownSlashCommands = removeUnknownSlashCommands;
+	}
+	
+	/**
+	 * Checks whether unknown slash commands should be removed on startup or not.
+	 * @return <code>true</code> if unknown slash commands should be removed on startup, else <code>false</code>
+	 */
+	public final boolean isRemoveUnknownSlashCommands()
+	{
+		return removeUnknownSlashCommands;
+	}
+	
+	/**
+	 * Creates a listener for handling events related to the command framework.
+	 * 
+	 * The command framework is active only if the listener returned by this method is active.
+	 * @return the listener required for the command framework
+	 */
+	public ListenerAdapter build()
+	{
+		if(LOG.isDebugEnabled())
+			LOG.debug("Listening to following commands ({}):\n{}", handler.getCommands().size(), String.join(", ", handler.getCommands().keySet()));
+		
+		return new CommandListener(this);
+	}
+	
+	protected Consumer<ButtonClickEvent> getUnknownButtonAction()
+	{
+		return unknownButtonConsumer.get();
+	}
+	
+	/**
+	 * Sets the action executed when an unknown button is pressed.
+	 * @param unknownButtonConsumer the action triggered when an unknown button is pressed.
+	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
+	 */
+	public final CommandFramework setUnknownButtonAction(Consumer<ButtonClickEvent> unknownButtonConsumer)
+	{
+		this.unknownButtonConsumer.set(unknownButtonConsumer);
 		return this;
 	}
 
@@ -244,70 +358,65 @@ public class CommandFramework {
 	 * Get all registered commands of the {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance
 	 *
 	 * @return all registered commands
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#addCommands(Reflections)
-	 * @see io.github.jdiscordbots.command_framework.CommandFramework#addAction(Reflections, BiConsumer)
+	 * @see CommandFramework#addCommand(String, ICommand)
 	 */
-	public Map<String, ICommand> getCommands() {
-		return CommandHandler.getCommands();
+	public final Map<String, ICommand> getCommands()
+	{
+		return handler.getCommands();
+	}
+	
+	/**
+	 * Adds a new command.
+	 * 
+	 * The returned {@link Consumer} should be called for every {@link JDA} object the command should be used with.
+	 * @param name The name of the command to create
+	 * @param cmd  the command itself
+	 * @return A {@link Consumer} that should be executed with any {@link JDA} object the command should be used with
+	 */
+	public final Consumer<JDA> addCommand(String name,ICommand cmd)
+	{
+		Objects.requireNonNull(name);
+		Objects.requireNonNull(cmd);
+		name=name.toLowerCase();
+		handler.addCommand(name,cmd);
+		CommandData cmdData = SlashCommandBuilder.buildSlashCommand(name, cmd);
+		
+		return jda->jda.upsertCommand(cmdData).queue(actualCommand->
+			{
+				for (Guild guild : jda.getGuilds())
+				{
+					guild.updateCommandPrivilegesById(actualCommand.getId(), cmd.getPrivileges(guild)).queue();
+				}
+			});
 	}
 
 	/**
-	 * Build {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework} instance and create command listener
-	 *
-	 * @return {@link net.dv8tion.jda.api.hooks.ListenerAdapter ListenerAdapter}
+	 * Removes an existing command.
+	 * 
+	 * The returned {@link Consumer} should be called for every {@link JDA} object the command should be used with.
+	 * @param name the name of the command to remove
+	 * @return A {@link Consumer} that should be executed with any {@link JDA} object the command should be used with
 	 */
-	public ListenerAdapter build() {
-		if (LOG.isDebugEnabled())
-			LOG.debug("Listening to following commands ({}):\n{}", CommandHandler.getCommands().size(), String
-				.join(", ", CommandHandler.getCommands().keySet()));
-
-		return new CommandListener(this);
+	public final Consumer<JDA> removeCommand(String name)
+	{
+		Objects.requireNonNull(name);
+		String actualName=name.toLowerCase();
+		handler.removeCommand(actualName);
+		return jda -> Stream.concat(
+				Stream.of(jda.retrieveCommands()),
+				jda.getGuilds().stream().map(Guild::retrieveCommands))
+				.forEach(cmds -> removeSlashCommand(jda, actualName, cmds));
 	}
-
-	/**
-	 * CommandListener
-	 */
-	private static final class CommandListener extends ListenerAdapter {
-		private final CommandFramework framework;
-		private final String prefix;
-		private final boolean mentionPrefix;
-
-		/**
-		 * Construct a new CommandListener with the given CommandFramework
-		 *
-		 * @param framework {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework}
-		 */
-		public CommandListener(CommandFramework framework) {
-			this.framework = framework;
-			this.prefix = framework.getPrefix();
-			this.mentionPrefix = framework.isMentionPrefix();
-		}
-
-		/**
-		 * Handle incomming messages
-		 *
-		 * @param event {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
-		 */
-		@Override
-		public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
-			final CommandParser parser = new CommandParser(this.framework);
-			final Message message = event.getMessage();
-			final String contentRaw = message.getContentRaw().trim();
-			final String selfUserId = message.getJDA().getSelfUser().getId();
-			final boolean containsMention = contentRaw.startsWith("<!@" + selfUserId + "> ")
-				|| contentRaw.startsWith("<@" + selfUserId + "> ");
-
-			if (message.getAuthor().isBot())
-				return;
-
-			if (this.mentionPrefix && containsMention) {
-				CommandHandler.handle(parser
-					.parse(event, CommandParser.SPACE_PATTERN.split(contentRaw)[0] + " "));
-				return;
-			}
-
-			if (message.getContentDisplay().startsWith(this.prefix))
-				CommandHandler.handle(parser.parse(event, prefix));
-		}
+	
+	private void removeSlashCommand(JDA jda,String name,RestAction<List<net.dv8tion.jda.api.interactions.commands.Command>> commands)
+	{
+		commands.queue(cmds -> cmds.stream()
+				.filter(cmd -> name.equals(cmd.getName()))
+				.forEach(cmd -> jda.deleteCommandById(cmd.getId()).queue()));
+	}
+	
+	CommandHandler getCommandHandler()
+	{
+		return handler;
 	}
 }

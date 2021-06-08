@@ -1,37 +1,37 @@
 package io.github.jdiscordbots.command_framework;
 
+import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
-import io.github.jdiscordbots.command_framework.utils.PermissionUtils;
+import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFrameworkEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
-/**
- * CommandHandler of Command system
- */
-final class CommandHandler {
-	private static final Logger LOG = LoggerFactory.getLogger(CommandHandler.class);
-	private static final Map<String, ICommand> commands = new HashMap<>();
+import java.util.function.Consumer;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-	/**
-	 * Private constructor for utility class
-	 */
-	private CommandHandler() {
-		/* Prevent instantiation */
-	}
+final class CommandHandler
+{
+	private final Map<String, ICommand> commands = new ConcurrentHashMap<>();
+	private static final Logger LOG=LoggerFactory.getLogger(CommandHandler.class);
 
 	/**
 	 * Get registered commands
 	 *
 	 * @return {@link java.util.Map Map}
 	 */
-	static Map<String, ICommand> getCommands() {
+	Map<String, ICommand> getCommands()
+	{
 		return Collections.unmodifiableMap(commands);
 	}
 
@@ -41,43 +41,152 @@ final class CommandHandler {
 	 * @param name    invoke of command
 	 * @param command {@link io.github.jdiscordbots.command_framework.command.ICommand Command}
 	 */
-	static void addCommand(String name, ICommand command) {
+	void addCommand(String name, ICommand command)
+	{
 		commands.put(name, command);
+	}
+	
+	/**
+	 * Add command from commands map
+	 *
+	 * @param name    invoke of command
+	 * @param command {@link io.github.jdiscordbots.command_framework.command.ICommand Command}
+	 */
+	void removeCommand(String name)
+	{
+		commands.remove(name);
 	}
 
 	/**
-	 * handle commands
+	 * handle a command
 	 *
 	 * @param commandContainer {@link io.github.jdiscordbots.command_framework.CommandParser.CommandContainer CommandContainer}
 	 */
-	public static void handle(final CommandParser.CommandContainer commandContainer) {
-		final TextChannel channel = commandContainer.event.getChannel();
+	public void handle(final CommandContainer commandContainer)
+	{
+		CommandEvent event = commandContainer.event;
+		String cmdIdentifier=commandContainer.invoke.toLowerCase();
+		
+		if (commands.containsKey(cmdIdentifier))
+		{
+			final ICommand command = commands.get(cmdIdentifier);
 
-		if (commands.containsKey(commandContainer.invoke.toLowerCase())) {
-			final ICommand command = commands.get(commandContainer.invoke.toLowerCase());
-			final boolean canExecute = command.allowExecute(commandContainer.event);
-
-			/* Check permission and allow all commands to Owners */
-			if (canExecute || PermissionUtils.checkOwner(commandContainer.event)) {
-				try {
-					command.action(commandContainer.event);
-				} catch (RuntimeException e) {
-					LOG.error("The command {} was executed but an error occurred.", commandContainer.invoke, e);
-					channel.sendMessage("Error:\n```" + e.getMessage() + "\n```").queue();
-				}
-			} else {
-				channel.sendMessage("You're not allowed to use this command!").queue();
+			boolean canExecute=true;
+			
+			if(event instanceof SlashCommandFrameworkEvent)
+			{
+				event=new SlashCommandFrameworkEvent(event.getFramework(),((SlashCommandFrameworkEvent) event).getEvent(),command.getExpectedArguments());
 			}
-		} else if (commandContainer.event.getFramework().isUnknownCommand()) {
-			if (commandContainer.event.getFramework().getOnUnknownCommandHandler() == null) {
+			else
+			{
+				canExecute=hasExecutePrivileges(event.getMember(), command);
+			}
+			
+			canExecute &= command.allowExecute(event);
+			
+			/* Check permission and allow all commands to Owners */
+			if (canExecute || event.getFramework().getOwners().contains(event.getAuthor().getId()))
+			{
+				try
+				{
+					command.action(event);
+				}
+				catch (RuntimeException e)
+				{
+					LOG.error("The command {} was executed but an error occurred.", commandContainer.invoke, e);
+					event.reply("Error:\n```" + e.getMessage() + "\n```");
+				}
+			}
+			else
+			{
+				event.reply("You're not allowed to use this command!").queue();
+			}
+		}
+		else if (event.getFramework().isUnknownCommand())
+		{
+			Consumer<CommandEvent> unknownCommandConsumer = event.getFramework().getUnknownCommandConsumer();
+			if(unknownCommandConsumer == null)
+			{
 				final EmbedBuilder eb = new EmbedBuilder()
-					.setColor(Color.red)
-					.setTitle("Unknown command")
-					.setDescription("See `" + commandContainer.event.getFramework().getPrefix() + "help` for more information!");
+						.setColor(Color.red)
+						.setTitle("Unknown command")
+						.setDescription("See `" + event.getFramework().getPrefix() + "help` for more information!");
+					
+					event.reply(eb.build());
+			}
+			else
+			{
+				unknownCommandConsumer.accept(event);
+			}
+		}
+	}
 
-				channel.sendMessage(eb.build()).queue();
-			} else {
-				commandContainer.event.getFramework().getOnUnknownCommandHandler().accept(channel);
+	/**
+	 * checks if the user executing the command is permitted to do this
+	 * @param member
+	 * @param command
+	 * @return
+	 */
+	private boolean hasExecutePrivileges(Member member,ICommand command)
+	{
+		Collection<CommandPrivilege> privileges = command.getPrivileges(member.getGuild());
+		boolean allowed=command.isAvailableToEveryone();
+		
+		for (CommandPrivilege priv : privileges)
+		{
+			switch (priv.getType())
+			{
+			case ROLE:
+				for (Role role : member.getRoles())
+				{
+					if(role.getId().equals(priv.getId()))
+					{
+						allowed=priv.isEnabled();
+					}
+				}
+				break;
+			case USER:
+				if(member.getId().equals(priv.getId()))
+				{
+					return priv.isEnabled();
+				}
+				break;
+			default:
+				//ignore
+				break;
+			}
+		}
+		
+		return allowed;
+	}
+
+	/**
+	 * handle a button press
+	 *
+	 * @param commandContainer {@link CommandContainer CommandContainer}
+	 */
+	public void handleButtonClick(CommandFramework framework, ButtonClickEvent event)
+	{
+		String btnId=event.getButton().getId();
+		if(btnId!=null)
+		{
+			String btnIdPrefix=CommandParser.SPACE_PATTERN.split(btnId)[0];
+			ICommand cmd = commands.get(btnIdPrefix);
+			if(cmd!=null)
+			{
+				cmd.onButtonClick(event);
+			}
+			else
+			{
+				Consumer<ButtonClickEvent> unknownButtonConsumer = framework.getUnknownButtonAction();
+				if(unknownButtonConsumer==null)
+				{
+					event.deferEdit().queue();
+				}
+				else
+				{
+					unknownButtonConsumer.accept(event);
+				}
 			}
 		}
 	}
