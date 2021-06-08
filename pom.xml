@@ -14,18 +14,13 @@
 			<name>m2-dv8tion</name>
 			<url>https://m2.dv8tion.net/releases</url>
 		</repository>
-		<repository>
-			<id>jitpack.io</id>
-			<name>Jitpack</name>
-			<url>https://jitpack.io</url>
-		</repository>
 	</repositories>
 
 	<dependencies>
 		<dependency>
-			<groupId>com.github.DV8FromTheWorld</groupId>
+			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>feature~slash-commands-SNAPSHOT</version>
+			<version>4.2.1_273</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.classgraph</groupId>
