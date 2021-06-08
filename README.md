@@ -2,11 +2,23 @@
 
 ## Usage
 
-1. Create an instance of the CommandFramework
-2. Set prefix, owners etc.
-3. Build the command listener using `CommandFramework#build()` and add it to your JDA(Builder) instance
-4. Create command classes which are annotated by `@Command("commandname")` and implement the `ICommand` interface
-5. See how it works perfectly
+1. Add Command-Framework to the dependencies section of your `pom.xml` (replace VERSION with [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.jdiscordbots/command-framework/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.jdiscordbots/command-framework)):
+```xml
+<dependencies>
+	<dependency>
+		<groupId>io.github.jdiscordbots</groupId>
+		<artifactId>command-framework</artifactId>
+		<version>VERSION</version>
+		<scope>compile</scope>
+	</dependency>
+</dependencies>
+```
+
+2. Create an instance of `CommandFramework`
+3. Set prefix, owners etc.
+4. Build the command listener using `CommandFramework#build()` and add it to your JDA(Builder) instance as an event listener
+5. Create command classes which are annotated by `@Command("commandname")` and implement the `ICommand` interface
+6. See how it works perfectly
 
 ### Working example:
 

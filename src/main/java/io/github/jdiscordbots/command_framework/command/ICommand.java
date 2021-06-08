@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.Contract;
 
+import io.github.jdiscordbots.command_framework.CommandFramework;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;

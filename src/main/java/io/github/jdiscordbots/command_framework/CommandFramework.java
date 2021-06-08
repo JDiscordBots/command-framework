@@ -71,17 +71,6 @@ public class CommandFramework
 	}
 
 	/**
-	 * Constructs a new CommandFramework instance with the given Commands package
-	 *
-	 * @param commandsPackagePath path to package where commands are located, e.g. <code>com.example.bot.commands</code>
-	 * @see CommandFramework#CommandFramework()
-	 */
-	public CommandFramework(Map<String, ICommand> commands)
-	{
-		commands.forEach((alias,cmd)->handler.addCommand(alias.toLowerCase(), cmd));
-	}
-
-	/**
 	 * Gets the package name of the class of the calling method
 	 * @return the package name of the class of the calling method
 	 */

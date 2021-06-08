@@ -6,6 +6,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.github.jdiscordbots.command_framework.CommandFramework;
+
 /**
  * Annotation used for discovering commands.
  * A command that should be registered should be annotated with {@link Command}.
