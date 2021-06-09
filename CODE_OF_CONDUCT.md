@@ -55,7 +55,7 @@ further defined and clarified by project maintainers.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at Discord (user [`dan1st#7327`](https://discord.com/users/358291050957111296) or [`Gehasstes#0001`](https://discord.com/users/321227144791326730)). All
+reported by contacting the project team at Discord (user [`dan1st#7327`](https://discord.com/users/358291050957111296) or [`Noobi#3654`](https://discord.com/users/321227144791326730)). All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
