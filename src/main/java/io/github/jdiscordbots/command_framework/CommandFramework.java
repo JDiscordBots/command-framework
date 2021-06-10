@@ -43,9 +43,9 @@ public class CommandFramework
 {
 	private static final Logger LOG=LoggerFactory.getLogger(CommandFramework.class);
 	
-	private AtomicReference<Consumer<CommandEvent>> unknownCommandConsumer = new AtomicReference<>();
-	private AtomicReference<Consumer<ButtonClickEvent>> unknownButtonConsumer = new AtomicReference<>();
-	private AtomicReference<String> prefix = new AtomicReference<>("!");
+	private final AtomicReference<Consumer<CommandEvent>> unknownCommandConsumer = new AtomicReference<>();
+	private final AtomicReference<Consumer<ButtonClickEvent>> unknownButtonConsumer = new AtomicReference<>();
+	private final AtomicReference<String> prefix = new AtomicReference<>("!");
 	private final Set<String> owners = Collections.newSetFromMap(new ConcurrentHashMap<>());
 	private volatile boolean mentionPrefix = true;
 	private volatile boolean unknownCommand = true;

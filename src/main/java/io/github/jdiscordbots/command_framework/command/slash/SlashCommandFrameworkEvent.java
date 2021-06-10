@@ -63,6 +63,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 	private Stream<Argument> createSubcommandDataStream()
 	{
 		return Stream.of(event.getSubcommandGroup(), event.getSubcommandName())
+				.filter(Objects::nonNull)
 				.map(SlashCommandFrameworkEvent::createOptionDataFromString);
 	}
 	
