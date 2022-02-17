@@ -133,7 +133,7 @@ public final class MessageCommandEvent implements CommandEvent
 	@Override
 	public RestAction<Message> reply(MessageEmbed message)
 	{
-		return event.getMessage().reply(message);
+		return event.getMessage().replyEmbeds(message);
 	}
 
 	/**

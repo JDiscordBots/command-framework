@@ -1,6 +1,5 @@
 package io.github.jdiscordbots.command_framework.command;
 
-import net.dv8tion.jda.api.entities.AbstractChannel;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
@@ -73,8 +72,8 @@ public interface Argument
 
 	/**
 	 * Gets the channel type of the argument if it belongs to a channel
-	 * @return the {@link ChannelType} of the {@link AbstractChannel} of the argument
-	 * @throws IllegalStateException if the argument cannot be converted to an {@link AbstractChannel} or the {@link AbstractChannel} was not found
+	 * @return the {@link ChannelType} of the {@link MessageChannel} of the argument
+	 * @throws IllegalStateException if the argument cannot be converted to an {@link MessageChannel} or the {@link MessageChannel} was not found
 	 * @throws NumberFormatException if the argument format is invalid
 	 */
 	ChannelType getChannelType();

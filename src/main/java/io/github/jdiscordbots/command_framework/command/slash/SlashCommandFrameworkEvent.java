@@ -24,7 +24,7 @@ import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.SelfUser;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.data.DataObject;
@@ -36,18 +36,18 @@ import net.dv8tion.jda.internal.entities.SystemMessage;
 public final class SlashCommandFrameworkEvent implements CommandEvent
 {
 	private final CommandFramework framework;
-	private final SlashCommandEvent event;
+	private final SlashCommandInteractionEvent event;
 	private final List<Argument> args;
 	private AtomicReference<Message> firstMessage=new AtomicReference<>();
 
-	public SlashCommandFrameworkEvent(CommandFramework framework, SlashCommandEvent event)
+	public SlashCommandFrameworkEvent(CommandFramework framework, SlashCommandInteractionEvent event)
 	{
 		this.framework=framework;
 		this.event = event;
 		args=null;
 	}
 	
-	public SlashCommandFrameworkEvent(CommandFramework framework, SlashCommandEvent event, Collection<ArgumentTemplate> expectedArgs)
+	public SlashCommandFrameworkEvent(CommandFramework framework, SlashCommandInteractionEvent event, Collection<ArgumentTemplate> expectedArgs)
 	{
 		this.framework=framework;
 		this.event = event;
@@ -194,7 +194,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 		Message msg = firstMessage.get();
 		if (msg == null)
 		{
-			return new SystemMessage(getIdLong(), getChannel(), MessageType.APPLICATION_COMMAND, true, false, null,
+			return new SystemMessage(getIdLong(), getChannel(), MessageType.SLASH_COMMAND, null, true, false, null,
 					null, false, false, getArgs().stream().map(Argument::getAsString).collect(Collectors.joining(" ")),
 					"", getAuthor(), getMember(), null, null, Collections.emptyList(), Collections.emptyList(),
 					Collections.emptyList(), Collections.emptyList(), 0);
@@ -253,7 +253,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 		return event.getHook().deleteOriginal();
 	}
 	
-	public SlashCommandEvent getEvent()
+	public SlashCommandInteractionEvent getEvent()
 	{
 		return event;
 	}

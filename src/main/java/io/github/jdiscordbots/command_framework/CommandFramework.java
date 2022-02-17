@@ -8,7 +8,7 @@ import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.requests.RestAction;
@@ -44,7 +44,7 @@ public class CommandFramework
 	private static final Logger LOG=LoggerFactory.getLogger(CommandFramework.class);
 	
 	private final AtomicReference<Consumer<CommandEvent>> unknownCommandConsumer = new AtomicReference<>();
-	private final AtomicReference<Consumer<ButtonClickEvent>> unknownButtonConsumer = new AtomicReference<>();
+	private final AtomicReference<Consumer<ButtonInteractionEvent>> unknownButtonConsumer = new AtomicReference<>();
 	private final AtomicReference<String> prefix = new AtomicReference<>("!");
 	private final Set<String> owners = Collections.newSetFromMap(new ConcurrentHashMap<>());
 	private volatile boolean mentionPrefix = true;
@@ -118,7 +118,7 @@ public class CommandFramework
 	/**
 	 * Instantiate Command-classes
 	 *
-	 * @param reflections {@link org.reflections.Reflections Reflections}
+	 * @param scanResult {@link ScanResult ScanResult}
 	 * @param function    {@link java.util.function.BiConsumer BiConsumer}
 	 */
 	private static void addAction(ScanResult scanResult, BiConsumer<Annotation, Object> function)
@@ -327,7 +327,7 @@ public class CommandFramework
 		return new CommandListener(this);
 	}
 	
-	protected Consumer<ButtonClickEvent> getUnknownButtonAction()
+	protected Consumer<ButtonInteractionEvent> getUnknownButtonAction()
 	{
 		return unknownButtonConsumer.get();
 	}
@@ -337,7 +337,7 @@ public class CommandFramework
 	 * @param unknownButtonConsumer the action triggered when an unknown button is pressed.
 	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public final CommandFramework setUnknownButtonAction(Consumer<ButtonClickEvent> unknownButtonConsumer)
+	public final CommandFramework setUnknownButtonAction(Consumer<ButtonInteractionEvent> unknownButtonConsumer)
 	{
 		this.unknownButtonConsumer.set(unknownButtonConsumer);
 		return this;

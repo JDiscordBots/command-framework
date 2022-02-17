@@ -3,25 +3,23 @@ package io.github.jdiscordbots.command_framework;
 import io.github.jdiscordbots.command_framework.command.ArgumentTemplate;
 import io.github.jdiscordbots.command_framework.command.ICommand;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
+import net.dv8tion.jda.api.interactions.commands.build.*;
+import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 
 final class SlashCommandBuilder
 {
-	private final CommandData commandData;
+	private final SlashCommandData commandData;
 	private SubcommandGroupData group;
 	private SubcommandData subcommand;
 	
-	public SlashCommandBuilder(CommandData commandData)
+	public SlashCommandBuilder(SlashCommandData commandData)
 	{
 		this.commandData = commandData;
 	}
 
 	public static CommandData buildSlashCommand(String name, ICommand cmd)
 	{
-		CommandData commandData=new CommandData(name, cmd.help());
+		SlashCommandData commandData=Commands.slash(name, cmd.help());
 		SlashCommandBuilder subCommandInfo=new SlashCommandBuilder(commandData);
 		for (ArgumentTemplate arg : cmd.getExpectedArguments())
 		{

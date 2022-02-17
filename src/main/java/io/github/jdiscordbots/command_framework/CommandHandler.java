@@ -6,7 +6,7 @@ import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFramew
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
 
 import org.slf4j.Logger;
@@ -50,7 +50,6 @@ final class CommandHandler
 	 * Add command from commands map
 	 *
 	 * @param name    invoke of command
-	 * @param command {@link io.github.jdiscordbots.command_framework.command.ICommand Command}
 	 */
 	void removeCommand(String name)
 	{
@@ -60,7 +59,7 @@ final class CommandHandler
 	/**
 	 * handle a command
 	 *
-	 * @param commandContainer {@link io.github.jdiscordbots.command_framework.CommandParser.CommandContainer CommandContainer}
+	 * @param commandContainer {@link io.github.jdiscordbots.command_framework.CommandContainer CommandContainer}
 	 */
 	public void handle(final CommandContainer commandContainer)
 	{
@@ -163,9 +162,10 @@ final class CommandHandler
 	/**
 	 * handle a button press
 	 *
-	 * @param commandContainer {@link CommandContainer CommandContainer}
+	 * @param framework {@link CommandFramework CommandFramework}
+	 * @param event {@link ButtonInteractionEvent ButtonInteractionEvent}
 	 */
-	public void handleButtonClick(CommandFramework framework, ButtonClickEvent event)
+	public void handleButtonClick(CommandFramework framework, ButtonInteractionEvent event)
 	{
 		String btnId=event.getButton().getId();
 		if(btnId!=null)
@@ -178,7 +178,7 @@ final class CommandHandler
 			}
 			else
 			{
-				Consumer<ButtonClickEvent> unknownButtonConsumer = framework.getUnknownButtonAction();
+				Consumer<ButtonInteractionEvent> unknownButtonConsumer = framework.getUnknownButtonAction();
 				if(unknownButtonConsumer==null)
 				{
 					event.deferEdit().queue();

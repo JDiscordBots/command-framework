@@ -14,8 +14,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.ReadyEvent;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
+import org.jetbrains.annotations.NotNull;
 
 final class CommandListener extends ListenerAdapter
 {
@@ -76,13 +77,13 @@ final class CommandListener extends ListenerAdapter
 	
 	private void setupSlashCommandPermissions(Guild g,Map<String, String> commandIds)
 	{
-		Map<String, Collection<? extends CommandPrivilege>> privileges = framework.getCommands().entrySet().stream().map(
+		Map<String, Collection<CommandPrivilege>> privileges = framework.getCommands().entrySet().stream().map(
 				cmd -> new AbstractMap.SimpleEntry<>(commandIds.get(cmd.getKey()), addOwnerPrivileges(cmd.getValue().getPrivileges(g))))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		g.updateCommandPrivileges(privileges).queue();
 	}
 	
-	private Collection<? extends CommandPrivilege> addOwnerPrivileges(Collection<? extends CommandPrivilege> privileges)
+	private Collection<CommandPrivilege> addOwnerPrivileges(Collection<? extends CommandPrivilege> privileges)
 	{
 		return Stream.concat(framework.getOwners().stream().map(CommandPrivilege::enableUser), privileges.stream()).collect(Collectors.toSet());
 	}
@@ -113,7 +114,7 @@ final class CommandListener extends ListenerAdapter
 	/**
 	 * Handle incomming messages
 	 *
-	 * @param event {@link net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent GuildMessageReceivedEvent}
+	 * @param event {@link net.dv8tion.jda.api.events.message.MessageReceivedEvent MessageReceivedEvent}
 	 */
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event)
@@ -136,17 +137,17 @@ final class CommandListener extends ListenerAdapter
 		if (message.getContentDisplay().startsWith(framework.getPrefix()))
 			handler.handle(CommandParser.parse(framework, event, framework.getPrefix()));
 	}
-	
+
 	@Override
-	public void onSlashCommand(SlashCommandEvent event)
+	public void onSlashCommandInteraction(SlashCommandInteractionEvent event)
 	{
 		event.deferReply().queue();
 		SlashCommandFrameworkEvent frameworkEvent = new SlashCommandFrameworkEvent(framework,event);
 		handler.handle(new CommandContainer(event.getName(), frameworkEvent));
 	}
-	
+
 	@Override
-	public void onButtonClick(ButtonClickEvent event)
+	public void onButtonInteraction(ButtonInteractionEvent event)
 	{
 		handler.handleButtonClick(framework,event);
 	}

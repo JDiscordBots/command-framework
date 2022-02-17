@@ -10,10 +10,10 @@ import io.github.jdiscordbots.command_framework.command.CommandEvent;
 import io.github.jdiscordbots.command_framework.command.ICommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 @Command("test")
 public class TestCommand implements ICommand {
@@ -28,7 +28,7 @@ public class TestCommand implements ICommand {
 	}
 	
 	@Override
-	public void onButtonClick(ButtonClickEvent event) {
+	public void onButtonClick(ButtonInteractionEvent event) {
 		event.reply("button clicked").queue();
 	}
 

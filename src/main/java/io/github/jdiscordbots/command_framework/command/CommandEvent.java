@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Component;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.requests.RestAction;
 
 import java.util.List;
@@ -138,7 +139,7 @@ public interface CommandEvent
 	 * @param components the components the action row should consist of
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	default RestAction<Message> replyWithActionRow(String message, Component... components)
+	default RestAction<Message> replyWithActionRow(String message, ItemComponent... components)
 	{
 		return replyWithActionRows(message,ActionRow.of(components));
 	}
@@ -160,7 +161,7 @@ public interface CommandEvent
 	 * @param components the components the action row should consist of
 	 * @return a {@link RestAction} that can be used to actually send and react to sending this message
 	 */
-	default RestAction<Message> replyWithActionRow(MessageEmbed message, Component... components)
+	default RestAction<Message> replyWithActionRow(MessageEmbed message, ItemComponent... components)
 	{
 		return replyWithActionRows(null,message,ActionRow.of(components));
 	}
@@ -175,7 +176,7 @@ public interface CommandEvent
 	default RestAction<Message> replyWithActionRows(String message,MessageEmbed embed,ActionRow... actionRows)
 	{
 		return reply(new MessageBuilder(message)
-				.setEmbed(embed)
+				.setEmbeds(embed)
 				.setActionRows(actionRows)
 				.build());
 	}

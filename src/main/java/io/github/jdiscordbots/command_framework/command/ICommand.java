@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import org.jetbrains.annotations.Contract;
 
 import io.github.jdiscordbots.command_framework.CommandFramework;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
 
 /**
@@ -31,9 +31,9 @@ public interface ICommand
 	
 	/**
 	 * This method is executed on every button click where the button id equals the name of the command.
-	 * @param event A {@link ButtonClickEvent} representing the clicked button.
+	 * @param event A {@link ButtonInteractionEvent} representing the clicked button.
 	 */
-	default void onButtonClick(ButtonClickEvent event)
+	default void onButtonClick(ButtonInteractionEvent event)
 	{
 		event.deferEdit().queue();
 	}

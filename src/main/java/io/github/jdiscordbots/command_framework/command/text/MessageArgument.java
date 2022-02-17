@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.jdiscordbots.command_framework.command.Argument;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
@@ -23,10 +24,10 @@ public final class MessageArgument implements Argument
 	private static final Pattern USER_FORMAT=Pattern.compile("\\<@!?(\\d+)\\>");
 	private static final Pattern ROLE_FORMAT=Pattern.compile("\\<@&(\\d+)\\>");
 	private static final Pattern CHANNEL_FORMAT=Pattern.compile("\\<#(\\d+)\\>");
-	
+
 	private final Message msg;
 	private final String text;
-	
+
 	public MessageArgument(Message msg, String text)
 	{
 		this.msg=msg;
@@ -115,9 +116,24 @@ public final class MessageArgument implements Argument
 	@Override
 	public MessageChannel getAsMessageChannel()
 	{
-		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, msg.getJDA()::getTextChannelById,()->new IllegalStateException("Argument cannot be converted to message channel"));
+		return getAsMentionedEntityOrThrowIfNotExist(CHANNEL_FORMAT, id -> getMessageChannelFromId(msg.getJDA(),id), ()->new IllegalStateException("Argument cannot be converted to message channel"));
 	}
-	
+
+	private MessageChannel getMessageChannelFromId(JDA jda, String id)
+	{
+		MessageChannel ret = null;
+		GuildChannel gc = jda.getGuildChannelById(id);
+		if(gc instanceof MessageChannel)
+		{
+			ret = (MessageChannel) gc;
+		}
+		if(ret == null)
+		{
+			ret = jda.getPrivateChannelById(id);
+		}
+		return ret;
+	}
+
 	private void requireInGuild()
 	{
 		if(!msg.isFromGuild())
@@ -125,7 +141,7 @@ public final class MessageArgument implements Argument
 			throw new IllegalStateException("Cannot get member if user is not in guild");
 		}
 	}
-	
+
 	private <T,E extends Exception> T getAsMentionedEntityOrThrowIfNotExist(Pattern pattern,Function<String,T> converter,Supplier<E> toThrow) throws E
 	{
 		T entity = getAsMentionedEntity(pattern,converter);
@@ -135,7 +151,7 @@ public final class MessageArgument implements Argument
 		}
 		return entity;
 	}
-	
+
 	private <T> T getAsMentionedEntity(Pattern pattern,Function<String,T> converter)
 	{
 		Matcher matcher = pattern.matcher(text);
