@@ -1,21 +1,5 @@
 package io.github.jdiscordbots.command_framework;
 
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ClassInfo;
-import io.github.classgraph.ScanResult;
-import io.github.jdiscordbots.command_framework.command.Command;
-import io.github.jdiscordbots.command_framework.command.CommandEvent;
-import io.github.jdiscordbots.command_framework.command.ICommand;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.requests.RestAction;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -30,6 +14,22 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ScanResult;
+import io.github.jdiscordbots.command_framework.command.Command;
+import io.github.jdiscordbots.command_framework.command.CommandEvent;
+import io.github.jdiscordbots.command_framework.command.ICommand;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.requests.RestAction;
 
 /**
  * Main class of the command framework.
@@ -298,10 +298,12 @@ public class CommandFramework
 	/**
 	 * Sets whether unknown slash commands should be removed on startup or not.
 	 * @param removeUnknownSlashCommands <code>true</code> if unknown slash commands should be removed on startup, else <code>false</code>
+	 * @return the instance (<code>this</code>) of the {@link CommandFramework} that can be used for chaining.
 	 */
-	public final void setRemoveUnknownSlashCommands(boolean removeUnknownSlashCommands)
+	public final CommandFramework setRemoveUnknownSlashCommands(boolean removeUnknownSlashCommands)
 	{
 		this.removeUnknownSlashCommands = removeUnknownSlashCommands;
+		return this;
 	}
 	
 	/**
@@ -369,14 +371,7 @@ public class CommandFramework
 		name=name.toLowerCase();
 		handler.addCommand(name,cmd);
 		CommandData cmdData = SlashCommandBuilder.buildSlashCommand(name, cmd);
-		
-		return jda->jda.upsertCommand(cmdData).queue(actualCommand->
-			{
-				for (Guild guild : jda.getGuilds())
-				{
-					guild.updateCommandPrivilegesById(actualCommand.getId(), cmd.getPrivileges(guild)).queue();
-				}
-			});
+		return jda->jda.upsertCommand(cmdData).queue();
 	}
 
 	/**

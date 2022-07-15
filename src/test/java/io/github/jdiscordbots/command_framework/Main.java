@@ -1,13 +1,16 @@
 package io.github.jdiscordbots.command_framework;
 
-import net.dv8tion.jda.api.JDABuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+
+import javax.security.auth.login.LoginException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.github.jdiscordbots.command_framework.commands.ManualCommand;
+import net.dv8tion.jda.api.JDABuilder;
 
 /**
  * Testing main class for {@link io.github.jdiscordbots.command_framework.CommandFramework CommandFramework}
@@ -30,7 +33,7 @@ public class Main {
 					.setPrefix("nd--")
 					.setOwners(new String[] {"358291050957111296", "321227144791326730"})
 					.setSlashCommandsPerGuild(true);
-
+				framework.addCommand("manual", new ManualCommand());
 				JDABuilder.createDefault(token).addEventListeners(framework.build()).build();
 			} else
 				LOG.error("The file .token is empty.");

@@ -1,13 +1,11 @@
 package io.github.jdiscordbots.command_framework;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFrameworkEvent;
 import net.dv8tion.jda.api.JDA;
@@ -20,10 +18,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
-import org.jetbrains.annotations.NotNull;
 
 final class CommandListener extends ListenerAdapter
 {
@@ -59,33 +55,13 @@ final class CommandListener extends ListenerAdapter
 		{
 			for (Guild guild : jda.getGuilds())
 			{
-				initializeSlashCommands(slashCommands, guild::updateCommands, guild::retrieveCommands)
-						.queue(cmds -> setupSlashCommandPermissions(guild, cmds));
+				initializeSlashCommands(slashCommands, guild::updateCommands, guild::retrieveCommands).queue();
 			}
 		}
 		else
 		{
-			initializeSlashCommands(slashCommands, jda::updateCommands, jda::retrieveCommands).queue(cmds ->
-			{
-				for (Guild guild : jda.getGuilds())
-				{
-					setupSlashCommandPermissions(guild, cmds);
-				}
-			});
+			initializeSlashCommands(slashCommands, jda::updateCommands, jda::retrieveCommands).queue();
 		}
-	}
-	
-	private void setupSlashCommandPermissions(Guild g,Map<String, String> commandIds)
-	{
-		Map<String, Collection<CommandPrivilege>> privileges = framework.getCommands().entrySet().stream().map(
-				cmd -> new AbstractMap.SimpleEntry<>(commandIds.get(cmd.getKey()), addOwnerPrivileges(cmd.getValue().getPrivileges(g))))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-		g.updateCommandPrivileges(privileges).queue();
-	}
-	
-	private Collection<CommandPrivilege> addOwnerPrivileges(Collection<? extends CommandPrivilege> privileges)
-	{
-		return Stream.concat(framework.getOwners().stream().map(CommandPrivilege::enableUser), privileges.stream()).collect(Collectors.toSet());
 	}
 	
 	private RestAction<Map<String, String>> initializeSlashCommands(Collection<CommandData> slashCommands,Supplier<CommandListUpdateAction> commandUpdater,Supplier<RestAction<List<net.dv8tion.jda.api.interactions.commands.Command>>> commandRetriever)
@@ -141,9 +117,8 @@ final class CommandListener extends ListenerAdapter
 	@Override
 	public void onSlashCommandInteraction(SlashCommandInteractionEvent event)
 	{
-		event.deferReply().queue();
 		SlashCommandFrameworkEvent frameworkEvent = new SlashCommandFrameworkEvent(framework,event);
-		handler.handle(new CommandContainer(event.getName(), frameworkEvent));
+		event.deferReply().queue(action->handler.handle(new CommandContainer(event.getName(), frameworkEvent)));
 	}
 
 	@Override

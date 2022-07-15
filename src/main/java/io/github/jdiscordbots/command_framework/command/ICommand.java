@@ -1,15 +1,16 @@
 package io.github.jdiscordbots.command_framework.command;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import org.jetbrains.annotations.Contract;
 
 import io.github.jdiscordbots.command_framework.CommandFramework;
+import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFrameworkEvent;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
 /**
  * Commands should implement this interface.
@@ -47,25 +48,37 @@ public interface ICommand
 	@Contract(pure = true)
 	default boolean allowExecute(CommandEvent event)
 	{
-		return true;
+		if(isAvailableToEveryone()) {
+			return true;
+		}
+		if(event instanceof SlashCommandFrameworkEvent) {
+			return true;
+		}
+		for(Permission perm : getRequiredPermissions()){
+			if(event.getMember().hasPermission(perm)){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
-	 * Gets the permissions declaring who is able to use the command in a specific {@link Guild}
+	 * Gets the permissions required for executing a command.
+	 * Everyone with at least one of those permissons can use the command.
+	 * Server administrators can overwrite this.
+	 * This overwrites {@link ICommand#isAvailableToEveryone()}
 	 * 
-	 * @param guild the {@link Guild} to get the privileges
-	 * @return a {@link Collection} containing the command priviliges of the specified {@link Guild}
-	 * @see ICommand#isAvailableToEveryone()
+	 * @return a {@link Set} containing the required permissions or <code>null</code> if everyone should be able to use the command
 	 */
 	@Contract(pure = true)
-	default Collection<CommandPrivilege> getPrivileges(Guild guild)
+	default Set<Permission> getRequiredPermissions()
 	{
-		return Collections.emptyList();
+		return isAvailableToEveryone()?null:Collections.emptySet();
 	}
 	
 	/**
 	 * checks weather this command can be used by anyone without special permissions.
-	 * @return <code>true</code> if anyone can use the command
+	 * @return <code>true</code> if anyone can use the command by default
 	 * @see ICommand#getPrivileges(Guild)
 	 */
 	@Contract(pure = true)

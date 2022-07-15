@@ -1,10 +1,19 @@
 package io.github.jdiscordbots.command_framework;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import io.github.jdiscordbots.command_framework.command.ArgumentTemplate;
 import io.github.jdiscordbots.command_framework.command.ICommand;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.*;
-import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
 final class SlashCommandBuilder
 {
@@ -25,7 +34,16 @@ final class SlashCommandBuilder
 		{
 			subCommandInfo.setupSlashArgument(arg);
 		}
-		commandData.setDefaultEnabled(cmd.isAvailableToEveryone());
+		Set<Permission> requiredPermissions = cmd.getRequiredPermissions();
+		DefaultMemberPermissions privileges;
+		if (requiredPermissions == null) {
+			privileges = DefaultMemberPermissions.ENABLED;
+		}else {
+			requiredPermissions = new HashSet<>(requiredPermissions);
+			requiredPermissions.add(Permission.ADMINISTRATOR);
+			privileges = DefaultMemberPermissions.enabledFor(requiredPermissions);
+		}
+		commandData.setDefaultPermissions(privileges);
 		return commandData;
 	}
 	

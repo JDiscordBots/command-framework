@@ -1,24 +1,19 @@
 package io.github.jdiscordbots.command_framework;
 
-import io.github.jdiscordbots.command_framework.command.CommandEvent;
-import io.github.jdiscordbots.command_framework.command.ICommand;
-import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFrameworkEvent;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
+import java.awt.Color;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
-import java.util.Collections;
-import java.util.Map;
-
-import java.util.function.Consumer;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import io.github.jdiscordbots.command_framework.command.CommandEvent;
+import io.github.jdiscordbots.command_framework.command.ICommand;
+import io.github.jdiscordbots.command_framework.command.slash.SlashCommandFrameworkEvent;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
 final class CommandHandler
 {
@@ -76,10 +71,6 @@ final class CommandHandler
 			{
 				event=new SlashCommandFrameworkEvent(event.getFramework(),((SlashCommandFrameworkEvent) event).getEvent(),command.getExpectedArguments());
 			}
-			else
-			{
-				canExecute=hasExecutePrivileges(event.getMember(), command);
-			}
 			
 			canExecute &= command.allowExecute(event);
 			
@@ -118,45 +109,6 @@ final class CommandHandler
 				unknownCommandConsumer.accept(event);
 			}
 		}
-	}
-
-	/**
-	 * checks if the user executing the command is permitted to do this
-	 * @param member
-	 * @param command
-	 * @return
-	 */
-	private boolean hasExecutePrivileges(Member member,ICommand command)
-	{
-		Collection<CommandPrivilege> privileges = command.getPrivileges(member.getGuild());
-		boolean allowed=command.isAvailableToEveryone();
-		
-		for (CommandPrivilege priv : privileges)
-		{
-			switch (priv.getType())
-			{
-			case ROLE:
-				for (Role role : member.getRoles())
-				{
-					if(role.getId().equals(priv.getId()))
-					{
-						allowed=priv.isEnabled();
-					}
-				}
-				break;
-			case USER:
-				if(member.getId().equals(priv.getId()))
-				{
-					return priv.isEnabled();
-				}
-				break;
-			default:
-				//ignore
-				break;
-			}
-		}
-		
-		return allowed;
 	}
 
 	/**

@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import gnu.trove.map.hash.TLongObjectHashMap;
 import io.github.jdiscordbots.command_framework.CommandFramework;
 import io.github.jdiscordbots.command_framework.command.Argument;
 import io.github.jdiscordbots.command_framework.command.ArgumentTemplate;
@@ -64,7 +65,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 	{
 		return Stream.of(event.getSubcommandGroup(), event.getSubcommandName())
 				.filter(Objects::nonNull)
-				.map(SlashCommandFrameworkEvent::createOptionDataFromString);
+				.map(in->createOptionDataFromString(in, getGuild()));
 	}
 	
 	private Stream<Argument> createActualArgumentsStream(Collection<ArgumentTemplate> expectedArgs)
@@ -73,9 +74,9 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 				.map(SlashArgument::new);
 	}
 
-	private static Argument createOptionDataFromString(String in)
+	private static Argument createOptionDataFromString(String in, Guild g)
 	{
-		return new SlashArgument(new OptionMapping(new DataObject(creationOptionDataMap(in)) {}, null));
+		return new SlashArgument(new OptionMapping(new DataObject(creationOptionDataMap(in)) {}, new TLongObjectHashMap<>(),g.getJDA(), g));
 	}
 	
 	private static Map<String, Object> creationOptionDataMap(String in)
@@ -193,11 +194,12 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 	{
 		Message msg = firstMessage.get();
 		if (msg == null)
-		{
-			return new SystemMessage(getIdLong(), getChannel(), MessageType.SLASH_COMMAND, null, true, false, null,
-					null, false, false, getArgs().stream().map(Argument::getAsString).collect(Collectors.joining(" ")),
-					"", getAuthor(), getMember(), null, null, Collections.emptyList(), Collections.emptyList(),
-					Collections.emptyList(), Collections.emptyList(), 0);
+		{//getArgs().stream().map(Argument::getAsString).collect(Collectors.joining(" "))
+			return new SystemMessage(getIdLong(), getChannel(), MessageType.SLASH_COMMAND, null,
+					true, false, false,
+					event.getCommandString(), null, getAuthor(), getMember(), null, null,
+					null,Collections.emptyList(), Collections.emptyList(),
+					Collections.emptyList(), Collections.emptyList(), 0, event.getThreadChannel());
 		}
 		return msg;
 	}
