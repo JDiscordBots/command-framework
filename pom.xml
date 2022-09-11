@@ -6,7 +6,7 @@
 
 	<groupId>io.github.jdiscordbots</groupId>
 	<artifactId>command-framework</artifactId>
-	<version>1.1.0</version>
+	<version>1.1.1</version>
 
 	<name>command-framework</name>
 	<description>A command system for JDA that allows to treat slash and text commands the same</description>
@@ -44,7 +44,7 @@
 		<developerConnection>scm:git:git@github.com:JDiscordBots/command-framework.git</developerConnection>
 		<url>scm:git:git@github.com:JDiscordBots/command-framework</url>
 	</scm>
-	
+
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
@@ -60,7 +60,7 @@
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>5.0.0-alpha.13</version>
+			<version>5.0.0-alpha.18</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.classgraph</groupId>

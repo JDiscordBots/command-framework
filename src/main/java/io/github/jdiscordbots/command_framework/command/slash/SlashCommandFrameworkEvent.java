@@ -29,6 +29,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.data.DataObject;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.internal.entities.SystemMessage;
 
 /**
@@ -47,27 +48,27 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 		this.event = event;
 		args=null;
 	}
-	
+
 	public SlashCommandFrameworkEvent(CommandFramework framework, SlashCommandInteractionEvent event, Collection<ArgumentTemplate> expectedArgs)
 	{
 		this.framework=framework;
 		this.event = event;
 		args = Collections.unmodifiableList(loadArgs(expectedArgs));
 	}
-	
+
 	private List<Argument> loadArgs(Collection<ArgumentTemplate> expectedArgs)
 	{
 		return Stream.concat(createSubcommandDataStream(), createActualArgumentsStream(expectedArgs))
 				.collect(Collectors.toList());
 	}
-	
+
 	private Stream<Argument> createSubcommandDataStream()
 	{
 		return Stream.of(event.getSubcommandGroup(), event.getSubcommandName())
 				.filter(Objects::nonNull)
 				.map(in->createOptionDataFromString(in, getGuild()));
 	}
-	
+
 	private Stream<Argument> createActualArgumentsStream(Collection<ArgumentTemplate> expectedArgs)
 	{
 		return expectedArgs.stream().map(ArgumentTemplate::getName).map(event::getOption).filter(Objects::nonNull)
@@ -78,7 +79,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 	{
 		return new SlashArgument(new OptionMapping(new DataObject(creationOptionDataMap(in)) {}, new TLongObjectHashMap<>(),g.getJDA(), g));
 	}
-	
+
 	private static Map<String, Object> creationOptionDataMap(String in)
 	{
 		Map<String, Object> ret=new HashMap<>();
@@ -140,7 +141,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 	{
 		return event.getMember();
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -183,7 +184,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 	@Override
 	public PrivateChannel getPrivateChannel()
 	{
-		return event.getPrivateChannel();
+		return event.getChannel().asPrivateChannel();
 	}
 
 	/**
@@ -199,7 +200,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 					true, false, false,
 					event.getCommandString(), null, getAuthor(), getMember(), null, null,
 					null,Collections.emptyList(), Collections.emptyList(),
-					Collections.emptyList(), Collections.emptyList(), 0, event.getThreadChannel());
+					Collections.emptyList(), Collections.emptyList(), 0, event.getChannel().getType().isThread() ? event.getChannel().asThreadChannel() : null);
 		}
 		return msg;
 	}
@@ -226,7 +227,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Message> reply(Message message)
+	public RestAction<Message> reply(MessageCreateData message)
 	{
 		return event.getHook().sendMessage(message).map(this::saveMessageIfFirst);
 	}
@@ -239,7 +240,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 	{
 		return event.getHook().sendMessageEmbeds(message).map(this::saveMessageIfFirst);
 	}
-	
+
 	private Message saveMessageIfFirst(Message msg)
 	{
 		firstMessage.compareAndSet(null, msg);
@@ -254,7 +255,7 @@ public final class SlashCommandFrameworkEvent implements CommandEvent
 	{
 		return event.getHook().deleteOriginal();
 	}
-	
+
 	public SlashCommandInteractionEvent getEvent()
 	{
 		return event;

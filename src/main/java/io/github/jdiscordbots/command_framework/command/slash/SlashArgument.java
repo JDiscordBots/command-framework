@@ -16,19 +16,19 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 public final class SlashArgument implements Argument
 {
 	private final OptionMapping option;
-	
+
 	public SlashArgument(OptionMapping option)
 	{
 		this.option=option;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public boolean getAsBoolean()
 	{
-		
+
 		return option.getAsBoolean();
 	}
 
@@ -74,7 +74,7 @@ public final class SlashArgument implements Argument
 	@Override
 	public GuildChannel getAsGuildChannel()
 	{
-		return option.getAsGuildChannel();
+		return option.getAsChannel();
 	}
 
 	/**
@@ -83,7 +83,7 @@ public final class SlashArgument implements Argument
 	@Override
 	public MessageChannel getAsMessageChannel()
 	{
-		return option.getAsMessageChannel();
+		return option.getAsChannel().asGuildMessageChannel();
 	}
 
 	/**

@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -140,8 +141,7 @@ public final class MessageCommandEvent implements CommandEvent
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RestAction<Message> reply(Message message)
-	{
+	public RestAction<Message> reply(MessageCreateData message) {
 		return event.getMessage().reply(message);
 	}
 
@@ -169,7 +169,7 @@ public final class MessageCommandEvent implements CommandEvent
 	@Override
 	public PrivateChannel getPrivateChannel()
 	{
-		return event.getMessage().getPrivateChannel();
+		return event.getMessage().getChannel().asPrivateChannel();
 	}
 
 	/**
@@ -185,4 +185,5 @@ public final class MessageCommandEvent implements CommandEvent
 	{
 		return event;
 	}
+
 }
